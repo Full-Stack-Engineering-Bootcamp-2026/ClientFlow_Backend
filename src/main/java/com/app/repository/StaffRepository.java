@@ -8,4 +8,8 @@ import com.app.entity.Staff;
 
 public interface StaffRepository extends JpaRepository<Staff, Long> {
     Optional<Staff> findByEmail(String email);
+
+     boolean existsByEmail(String email);
+
+    boolean existsByEmployeeId(String employeeId);
 }
