@@ -17,6 +17,8 @@ import com.app.response.ApiResponse;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+
+
     //DTO Validation
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(
@@ -148,16 +150,20 @@ public class GlobalExceptionHandler {
         );
     }
 
-    //Generic
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex) {
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                ApiResponse.builder()
-                        .success(false)
-                        .message("Something went wrong")
-                        .errorCode(ErrorCodes.INTERNAL_ERROR)
-                        .build()
-        );
-    }
+    @ExceptionHandler(Exception.class)
+public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception ex) {
+
+    ex.printStackTrace(); 
+
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+            ApiResponse.builder()
+                    .success(false)
+                    .message(ex.getMessage())
+                    .errorCode(ErrorCodes.INTERNAL_ERROR)
+                    .build()
+    );
+}
+
+   
 }
