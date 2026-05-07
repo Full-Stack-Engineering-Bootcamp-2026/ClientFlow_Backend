@@ -12,4 +12,6 @@ public interface StaffRepository extends JpaRepository<Staff, Long> {
      boolean existsByEmail(String email);
 
     boolean existsByEmployeeId(String employeeId);
+
+     long countByRole_NameAndIsActiveTrue(String roleName);
 }

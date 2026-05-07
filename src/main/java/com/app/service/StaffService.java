@@ -1,10 +1,16 @@
 package com.app.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.app.dto.CreateStaffRequest;
 import com.app.dto.CreateStaffResponse;
+import com.app.dto.StaffResponse;
 import com.app.entity.Role;
 import com.app.entity.Staff;
 import com.app.exception.BadRequestException;
@@ -25,7 +31,7 @@ public class StaffService {
 
     private final RoleRepository roleRepository;
 
-     public CreateStaffResponse createStaff(CreateStaffRequest request){
+    public CreateStaffResponse createStaff(CreateStaffRequest request) {
         String email = request.getEmail();
         String fullName = request.getFullName();
 
@@ -37,10 +43,8 @@ public class StaffService {
             throw new DuplicateResourceException("Employee ID already exists");
         }
 
-         Role role = roleRepository.findById(request.getRoleId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Role not found")
-                );
+        Role role = roleRepository.findById(request.getRoleId())
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
 
         if ("DOCTOR".equals(role.getName()) && request.getSpecialization() == null) {
             throw new BadRequestException("Specialization is required for doctor");
@@ -54,7 +58,7 @@ public class StaffService {
                 .officialRole(request.getOfficialRole())
                 .specialization(request.getSpecialization())
                 .role(role)
-                .passwordHash(passwordEncoder.encode(request.getPassword())) 
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .isActive(true)
                 .build();
 
@@ -63,7 +67,32 @@ public class StaffService {
                 staff.getId(),
                 staff.getFullName(),
                 staff.getEmail(),
-                role.getName()
-        );
-     }
+                role.getName());
+
+    }
+
+    public Page<StaffResponse> getAllStaff(int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        Page<Staff> staffPage = staffRepository.findAll(pageable);
+
+        return staffPage.map(staff -> new StaffResponse(
+                staff.getId(),
+                staff.getFullName(),
+                staff.getEmail(),
+                staff.getRole().getName(),
+                staff.getIsActive()));
+    }
+
+    @Transactional
+    public void updateStaffStatus(Long staffId, Boolean isActive) {
+
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new ResourceNotFoundException("Staff not found"));
+
+        staff.setIsActive(isActive);
+
+        staffRepository.save(staff);
+    }
 }
