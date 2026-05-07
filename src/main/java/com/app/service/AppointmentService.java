@@ -26,6 +26,7 @@ public class AppointmentService {
     private final StaffRepository staffRepository;
     private final PatientRepository patientRepository;
     private final DoctorScheduleRepository scheduleRepository;
+    private final LeaveRepository leaveRepository;
 
     @Transactional
     public AppointmentResponse bookAppointment(AppointmentRequest request) {
@@ -52,7 +53,7 @@ public class AppointmentService {
                     Patient p = Patient.builder()
                             .fullName(request.getPatientName())
                             .mobile(request.getPatientPhone())
-                            .registeredBy(bookedBy) 
+                            .registeredBy(bookedBy)
                             .gender(request.getGender())
                             .build();
                     return patientRepository.save(p);
@@ -83,6 +84,14 @@ public class AppointmentService {
 
         if (count >= schedule.getMaxAppointments()) {
             throw new BadRequestException("Slots full");
+        }
+
+        boolean onLeave = leaveRepository.existsByDoctorScheduleIdAndExceptionDate(
+                schedule.getId(),
+                request.getAppointmentDate());
+
+        if (onLeave) {
+            throw new BadRequestException("Doctor is on leave on this date");
         }
 
         int nextQueue = appointmentRepository

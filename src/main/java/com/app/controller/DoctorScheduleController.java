@@ -1,5 +1,6 @@
 package com.app.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -11,11 +12,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.app.dto.DoctorScheduleRequest;
 import com.app.dto.DoctorScheduleResponse;
 import com.app.dto.DoctorWeeklyScheduleRequest;
+import com.app.dto.DoctorWeeklyScheduleResponse;
 import com.app.response.ApiResponse;
 import com.app.service.DoctorScheduleService;
 
@@ -90,4 +93,17 @@ public class DoctorScheduleController {
                         .message("Weekly schedule created")
                         .build());
     }
+    @GetMapping("/weekly")
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<ApiResponse<List<DoctorWeeklyScheduleResponse>>> getWeekly(
+        @RequestParam LocalDate startDate) {
+
+    return ResponseEntity.ok(
+            ApiResponse.<List<DoctorWeeklyScheduleResponse>>builder()
+                    .success(true)
+                    .message("Weekly schedule fetched successfully")
+                    .data(scheduleService.getWeeklySchedule(startDate))
+                    .build()
+    );
+}
 }

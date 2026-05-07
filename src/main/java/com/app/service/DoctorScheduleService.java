@@ -1,5 +1,7 @@
 package com.app.service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -8,12 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.app.dto.DoctorScheduleRequest;
 import com.app.dto.DoctorScheduleResponse;
 import com.app.dto.DoctorWeeklyScheduleRequest;
+import com.app.dto.DoctorWeeklyScheduleResponse;
 import com.app.entity.DoctorSchedule;
+import com.app.entity.LeaveException;
 import com.app.entity.Staff;
 import com.app.enums.DayOfWeek;
 import com.app.exception.BadRequestException;
 import com.app.exception.ResourceNotFoundException;
 import com.app.repository.DoctorScheduleRepository;
+import com.app.repository.LeaveRepository;
 import com.app.repository.StaffRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -24,6 +29,7 @@ public class DoctorScheduleService {
 
     private final DoctorScheduleRepository scheduleRepository;
     private final StaffRepository staffRepository;
+    private final LeaveRepository leaveRepository;
 
     @Transactional
     public DoctorScheduleResponse createSchedule(DoctorScheduleRequest request) {
@@ -103,34 +109,77 @@ public class DoctorScheduleService {
     }
 
     @Transactional
-public void createWeeklySchedule(DoctorWeeklyScheduleRequest request) {
+    public void createWeeklySchedule(DoctorWeeklyScheduleRequest request) {
 
-    Staff doctor = staffRepository.findById(request.getDoctorId())
-            .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+        Staff doctor = staffRepository.findById(request.getDoctorId())
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
 
-    if (!doctor.getRole().getName().equals("DOCTOR")) {
-        throw new BadRequestException("Invalid doctor");
+        if (!doctor.getRole().getName().equals("DOCTOR")) {
+            throw new BadRequestException("Invalid doctor");
+        }
+
+        for (DayOfWeek day : request.getDays()) {
+
+            boolean exists = scheduleRepository
+                    .existsByDoctorIdAndDayOfWeek(doctor.getId(), day);
+
+            if (exists)
+                continue;
+
+            DoctorSchedule schedule = DoctorSchedule.builder()
+                    .doctor(doctor)
+                    .dayOfWeek(day)
+                    .startTime(request.getStartTime())
+                    .endTime(request.getEndTime())
+                    .maxAppointments(request.getMaxAppointments())
+                    .isActive(true)
+                    .build();
+
+            scheduleRepository.save(schedule);
+        }
     }
 
-    for (DayOfWeek day : request.getDays()) {
+public List<DoctorWeeklyScheduleResponse> getWeeklySchedule(LocalDate startDate) {
 
-        // skip if already exists
-        boolean exists = scheduleRepository
-                .existsByDoctorIdAndDayOfWeek(doctor.getId(), day);
+    LocalDate startOfWeek = startDate.with(java.time.DayOfWeek.MONDAY);
+    LocalDate endOfWeek = startOfWeek.plusDays(6);
 
-        if (exists) continue;
+    List<Staff> doctors = staffRepository
+            .findByRole_NameAndIsActiveTrue("DOCTOR");
 
-        DoctorSchedule schedule = DoctorSchedule.builder()
-                .doctor(doctor)
-                .dayOfWeek(day)
-                .startTime(request.getStartTime())
-                .endTime(request.getEndTime())
-                .maxAppointments(request.getMaxAppointments())
-                .isActive(true)
-                .build();
+    List<DoctorWeeklyScheduleResponse> response = new ArrayList<>();
 
-        scheduleRepository.save(schedule);
+    for (Staff doctor : doctors) {
+
+        List<DoctorSchedule> schedules =
+                scheduleRepository.findByDoctorIdAndIsActiveTrue(doctor.getId());
+
+        if (schedules.isEmpty()) continue;
+
+        List<String> workingDays = schedules.stream()
+                .map(s -> s.getDayOfWeek().name())
+                .toList();
+                
+        List<LeaveException> leaves =
+                leaveRepository.findByDoctorScheduleDoctorIdAndExceptionDateBetween(
+                        doctor.getId(),
+                        startOfWeek,
+                        endOfWeek
+                );
+
+        List<String> leaveDates = leaves.stream()
+                .map(l -> l.getExceptionDate().toString())
+                .toList();
+
+        response.add(new DoctorWeeklyScheduleResponse(
+                doctor.getId(),
+                doctor.getFullName(),
+                workingDays,
+                leaveDates
+        ));
     }
+
+    return response;
 }
 
 }
