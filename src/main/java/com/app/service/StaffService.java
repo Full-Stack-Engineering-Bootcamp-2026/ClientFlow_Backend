@@ -1,5 +1,8 @@
 package com.app.service;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,14 +14,17 @@ import org.springframework.transaction.annotation.Transactional;
 import com.app.dto.CreateStaffRequest;
 import com.app.dto.CreateStaffResponse;
 import com.app.dto.StaffResponse;
+import com.app.entity.PasswordResetToken;
 import com.app.entity.Role;
 import com.app.entity.Staff;
 import com.app.exception.BadRequestException;
 import com.app.exception.DuplicateResourceException;
 import com.app.exception.ResourceNotFoundException;
+import com.app.repository.PasswordResetTokenRepository;
 import com.app.repository.RoleRepository;
 import com.app.repository.StaffRepository;
-
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -31,44 +37,53 @@ public class StaffService {
 
     private final RoleRepository roleRepository;
 
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
+
+    @Transactional
     public CreateStaffResponse createStaff(CreateStaffRequest request) {
-        String email = request.getEmail();
-        String fullName = request.getFullName();
 
-        if (staffRepository.existsByEmail(email)) {
-            throw new DuplicateResourceException("Email already exists");
-        }
-
-        if (staffRepository.existsByEmployeeId(request.getEmployeeId())) {
-            throw new DuplicateResourceException("Employee ID already exists");
+        if (staffRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already exists");
         }
 
         Role role = roleRepository.findById(request.getRoleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
-
-        if ("DOCTOR".equals(role.getName()) && request.getSpecialization() == null) {
-            throw new BadRequestException("Specialization is required for doctor");
-        }
+                .orElseThrow(() -> new RuntimeException("Role not found"));
 
         Staff staff = Staff.builder()
-                .fullName(fullName)
-                .email(email)
                 .employeeId(request.getEmployeeId())
+                .fullName(request.getFullName())
+                .email(request.getEmail())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .role(role)
                 .phone(request.getPhone())
                 .officialRole(request.getOfficialRole())
                 .specialization(request.getSpecialization())
-                .role(role)
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .isActive(true)
                 .build();
 
         staffRepository.save(staff);
+
+        String token = UUID.randomUUID().toString();
+
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .staff(staff)
+                .token(token)
+                .expiresAt(LocalDateTime.now().plusHours(24))
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        passwordResetTokenRepository.save(resetToken);
+
+        emailService.sendStaffWelcomeEmail(
+                staff.getEmail(),
+                token);
+
         return new CreateStaffResponse(
                 staff.getId(),
                 staff.getFullName(),
                 staff.getEmail(),
                 role.getName());
-
     }
 
     public Page<StaffResponse> getAllStaff(int page, int size) {

@@ -18,4 +18,6 @@ public interface LeaveRepository extends JpaRepository<LeaveException, Long> {
     LocalDate start,
     LocalDate end
 );
+
+long countByExceptionDate(LocalDate date);
 }

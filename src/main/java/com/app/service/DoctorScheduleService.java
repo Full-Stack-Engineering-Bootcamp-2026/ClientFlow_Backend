@@ -11,6 +11,7 @@ import com.app.dto.DoctorScheduleRequest;
 import com.app.dto.DoctorScheduleResponse;
 import com.app.dto.DoctorWeeklyScheduleRequest;
 import com.app.dto.DoctorWeeklyScheduleResponse;
+import com.app.dto.UpdateDoctorScheduleRequest;
 import com.app.entity.DoctorSchedule;
 import com.app.entity.LeaveException;
 import com.app.entity.Staff;
@@ -139,47 +140,74 @@ public class DoctorScheduleService {
         }
     }
 
-public List<DoctorWeeklyScheduleResponse> getWeeklySchedule(LocalDate startDate) {
+    public List<DoctorWeeklyScheduleResponse> getWeeklySchedule(LocalDate startDate) {
 
-    LocalDate startOfWeek = startDate.with(java.time.DayOfWeek.MONDAY);
-    LocalDate endOfWeek = startOfWeek.plusDays(6);
+        LocalDate startOfWeek = startDate.with(java.time.DayOfWeek.MONDAY);
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
 
-    List<Staff> doctors = staffRepository
-            .findByRole_NameAndIsActiveTrue("DOCTOR");
+        List<Staff> doctors = staffRepository
+                .findByRole_NameAndIsActiveTrue("DOCTOR");
 
-    List<DoctorWeeklyScheduleResponse> response = new ArrayList<>();
+        List<DoctorWeeklyScheduleResponse> response = new ArrayList<>();
 
-    for (Staff doctor : doctors) {
+        for (Staff doctor : doctors) {
 
-        List<DoctorSchedule> schedules =
-                scheduleRepository.findByDoctorIdAndIsActiveTrue(doctor.getId());
+            List<DoctorSchedule> schedules = scheduleRepository.findByDoctorIdAndIsActiveTrue(doctor.getId());
 
-        if (schedules.isEmpty()) continue;
+            if (schedules.isEmpty())
+                continue;
 
-        List<String> workingDays = schedules.stream()
-                .map(s -> s.getDayOfWeek().name())
-                .toList();
-                
-        List<LeaveException> leaves =
-                leaveRepository.findByDoctorScheduleDoctorIdAndExceptionDateBetween(
-                        doctor.getId(),
-                        startOfWeek,
-                        endOfWeek
-                );
+            List<String> workingDays = schedules.stream()
+                    .map(s -> s.getDayOfWeek().name())
+                    .toList();
 
-        List<String> leaveDates = leaves.stream()
-                .map(l -> l.getExceptionDate().toString())
-                .toList();
+            List<LeaveException> leaves = leaveRepository.findByDoctorScheduleDoctorIdAndExceptionDateBetween(
+                    doctor.getId(),
+                    startOfWeek,
+                    endOfWeek);
 
-        response.add(new DoctorWeeklyScheduleResponse(
-                doctor.getId(),
-                doctor.getFullName(),
-                workingDays,
-                leaveDates
-        ));
+            List<String> leaveDates = leaves.stream()
+                    .map(l -> l.getExceptionDate().toString())
+                    .toList();
+
+            response.add(new DoctorWeeklyScheduleResponse(
+                    doctor.getId(),
+                    doctor.getFullName(),
+                    workingDays,
+                    leaveDates));
+        }
+
+        return response;
     }
 
-    return response;
-}
+    @Transactional
+    public void updateSchedule(Long scheduleId, UpdateDoctorScheduleRequest request) {
+
+        DoctorSchedule schedule = scheduleRepository.findById(scheduleId)
+                .orElseThrow(() -> new RuntimeException("Schedule not found"));
+
+
+        if (request.getStartTime() != null) {
+            schedule.setStartTime(request.getStartTime());
+        }
+
+        if (request.getEndTime() != null) {
+            schedule.setEndTime(request.getEndTime());
+        }
+
+        if (request.getMaxAppointments() != null) {
+            schedule.setMaxAppointments(request.getMaxAppointments());
+        }
+
+        if (request.getIsActive() != null) {
+            schedule.setIsActive(request.getIsActive());
+        }
+
+        if (schedule.getStartTime().isAfter(schedule.getEndTime())) {
+            throw new RuntimeException("Start time must be before end time");
+        }
+
+        scheduleRepository.save(schedule);
+    }
 
 }

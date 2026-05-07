@@ -52,7 +52,7 @@ public class PasswordService {
             tokenRepository.save(entity);
 
           
-            emailService.sendResetEmail(user.getEmail(), token);
+            emailService.sendForgotPasswordEmail(user.getEmail(), token);
         });
 
         

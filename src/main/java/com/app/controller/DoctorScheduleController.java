@@ -19,6 +19,7 @@ import com.app.dto.DoctorScheduleRequest;
 import com.app.dto.DoctorScheduleResponse;
 import com.app.dto.DoctorWeeklyScheduleRequest;
 import com.app.dto.DoctorWeeklyScheduleResponse;
+import com.app.dto.UpdateDoctorScheduleRequest;
 import com.app.response.ApiResponse;
 import com.app.service.DoctorScheduleService;
 
@@ -93,17 +94,32 @@ public class DoctorScheduleController {
                         .message("Weekly schedule created")
                         .build());
     }
-    @GetMapping("/weekly")
-@PreAuthorize("hasRole('ADMIN')")
-public ResponseEntity<ApiResponse<List<DoctorWeeklyScheduleResponse>>> getWeekly(
-        @RequestParam LocalDate startDate) {
 
-    return ResponseEntity.ok(
-            ApiResponse.<List<DoctorWeeklyScheduleResponse>>builder()
-                    .success(true)
-                    .message("Weekly schedule fetched successfully")
-                    .data(scheduleService.getWeeklySchedule(startDate))
-                    .build()
-    );
-}
+    @GetMapping("/weekly")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<DoctorWeeklyScheduleResponse>>> getWeekly(
+            @RequestParam LocalDate startDate) {
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<DoctorWeeklyScheduleResponse>>builder()
+                        .success(true)
+                        .message("Weekly schedule fetched successfully")
+                        .data(scheduleService.getWeeklySchedule(startDate))
+                        .build());
+    }
+
+    @PutMapping("/staff/{scheduleId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> updateSchedule(
+            @PathVariable Long scheduleId,
+            @RequestBody UpdateDoctorScheduleRequest request) {
+
+        scheduleService.updateSchedule(scheduleId, request);
+
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Schedule updated successfully")
+                        .build());
+    }
 }

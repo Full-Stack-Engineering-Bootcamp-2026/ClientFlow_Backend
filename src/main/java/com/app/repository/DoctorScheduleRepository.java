@@ -14,4 +14,6 @@ boolean existsByDoctorIdAndDayOfWeek(Long doctorId, DayOfWeek dayOfWeek);
 
 Optional<DoctorSchedule> findByDoctorIdAndDayOfWeek(Long doctorId, DayOfWeek day);
 
+long countByDayOfWeekAndIsActiveTrue(com.app.enums.DayOfWeek dayOfWeek);
+
 }
