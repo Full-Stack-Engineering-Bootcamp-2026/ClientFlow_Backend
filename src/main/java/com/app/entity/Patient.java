@@ -43,6 +43,12 @@ public class Patient extends CreatedOnly {
     @Column(name = "blood_group", length = 5)
     private String bloodGroup;
 
+    @Column(name = "address", length = 300)
+    private String address;
+
+    @Column(name = "medical_notes", columnDefinition = "TEXT")
+    private String medicalNotes;
+
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "registered_by", nullable = false)

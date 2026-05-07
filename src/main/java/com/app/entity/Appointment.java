@@ -2,6 +2,8 @@ package com.app.entity;
 
 import com.app.entity.base.Auditable;
 import com.app.enums.AppointmentStatus;
+import com.app.enums.VisitType;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -58,6 +60,11 @@ public class Appointment extends Auditable {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private AppointmentStatus status = AppointmentStatus.WAITING;
+
+    @Enumerated(EnumType.STRING)
+@Column(name = "visit_type", nullable = false, length = 20)
+@Builder.Default
+private VisitType visitType = VisitType.STANDARD;
 
     @Column(name = "notes", length = 500)
     private String notes;
