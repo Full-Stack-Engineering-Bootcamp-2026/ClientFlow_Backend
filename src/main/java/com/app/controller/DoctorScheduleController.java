@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.app.dto.DoctorScheduleRequest;
 import com.app.dto.DoctorScheduleResponse;
+import com.app.dto.DoctorWeeklyScheduleRequest;
 import com.app.response.ApiResponse;
 import com.app.service.DoctorScheduleService;
 
@@ -29,7 +30,6 @@ public class DoctorScheduleController {
 
     private final DoctorScheduleService scheduleService;
 
-
     @PostMapping
     public ResponseEntity<ApiResponse<DoctorScheduleResponse>> create(
             @Valid @RequestBody DoctorScheduleRequest request) {
@@ -39,8 +39,7 @@ public class DoctorScheduleController {
                         .success(true)
                         .message("Schedule created successfully")
                         .data(scheduleService.createSchedule(request))
-                        .build()
-        );
+                        .build());
     }
 
     @GetMapping("/{doctorId}")
@@ -51,8 +50,7 @@ public class DoctorScheduleController {
                 ApiResponse.<List<DoctorScheduleResponse>>builder()
                         .success(true)
                         .data(scheduleService.getSchedule(doctorId))
-                        .build()
-        );
+                        .build());
     }
 
     @PutMapping("/{id}")
@@ -64,8 +62,7 @@ public class DoctorScheduleController {
                 ApiResponse.<DoctorScheduleResponse>builder()
                         .success(true)
                         .data(scheduleService.updateSchedule(id, request))
-                        .build()
-        );
+                        .build());
     }
 
     @DeleteMapping("/{id}")
@@ -77,7 +74,20 @@ public class DoctorScheduleController {
                 ApiResponse.<Void>builder()
                         .success(true)
                         .message("Schedule deleted successfully")
-                        .build()
-        );
+                        .build());
+    }
+
+    @PostMapping("/weekly")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> createWeeklySchedule(
+            @RequestBody DoctorWeeklyScheduleRequest request) {
+
+        scheduleService.createWeeklySchedule(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Weekly schedule created")
+                        .build());
     }
 }
