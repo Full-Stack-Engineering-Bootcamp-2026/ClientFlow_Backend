@@ -51,7 +51,7 @@ public class StaffService {
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         Staff staff = Staff.builder()
-                .employeeId(request.getEmployeeId())
+                .employeeId(generateEmployeeId(role))
                 .fullName(request.getFullName())
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
@@ -110,4 +110,31 @@ public class StaffService {
 
         staffRepository.save(staff);
     }
+
+    private String generateEmployeeId(Role role) {
+
+    String prefix;
+
+    switch (role.getName().toUpperCase()) {
+
+        case "DOCTOR":
+            prefix = "DOC";
+            break;
+
+        case "NURSE":
+            prefix = "NUR";
+            break;
+
+        case "ADMIN":
+            prefix = "ADM";
+            break;
+
+        default:
+            prefix = "STF";
+    }
+
+    long count = staffRepository.countByRoleId(role.getId());
+
+    return prefix + String.format("%03d", count + 1);
+}
 }

@@ -17,4 +17,6 @@ public interface StaffRepository extends JpaRepository<Staff, Long> {
      long countByRole_NameAndIsActiveTrue(String roleName);
      
      List<Staff> findByRole_NameAndIsActiveTrue(String roleName);
+
+     long countByRoleId(Long roleId);
 }
