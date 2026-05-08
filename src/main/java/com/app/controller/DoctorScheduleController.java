@@ -57,17 +57,17 @@ public class DoctorScheduleController {
                         .build());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<DoctorScheduleResponse>> update(
-            @PathVariable Long id,
-            @Valid @RequestBody DoctorScheduleRequest request) {
+    // @PutMapping("/{id}")
+    // public ResponseEntity<ApiResponse<DoctorScheduleResponse>> update(
+    //         @PathVariable Long id,
+    //         @Valid @RequestBody DoctorScheduleRequest request) {
 
-        return ResponseEntity.ok(
-                ApiResponse.<DoctorScheduleResponse>builder()
-                        .success(true)
-                        .data(scheduleService.updateSchedule(id, request))
-                        .build());
-    }
+    //     return ResponseEntity.ok(
+    //             ApiResponse.<DoctorScheduleResponse>builder()
+    //                     .success(true)
+    //                     .data(scheduleService.updateSchedule(id, request))
+    //                     .build());
+    // }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {

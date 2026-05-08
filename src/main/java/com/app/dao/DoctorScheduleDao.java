@@ -1,6 +1,7 @@
 package com.app.dao;
 
 import com.app.entity.DoctorSchedule;
+import com.app.enums.DayOfWeek;
 import com.app.exception.ResourceNotFoundException;
 import com.app.repository.DoctorScheduleRepository;
 
@@ -8,16 +9,22 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
-public class DoctorScheduleDao {
+import java.util.List;
 
-    private final DoctorScheduleRepository scheduleRepository;
 
-    public DoctorSchedule getScheduleById(Long id) {
+public interface DoctorScheduleDao {
 
-        return scheduleRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Schedule not found"));
-    }
+    DoctorSchedule getDoctorSchedule(Long doctorId,DayOfWeek day) ;
+
+    public DoctorSchedule getById(Long id) ;
+
+    public boolean existsByDoctorAndDay(Long doctorId,DayOfWeek day) ;
+
+    public List<DoctorSchedule> getActiveSchedulesByDoctor(Long doctorId) ;
+
+    public long countActiveDoctorsByDay(DayOfWeek day);
+
+    public DoctorSchedule save(DoctorSchedule schedule) ;
+
+    public void delete(DoctorSchedule schedule) ;
 }
