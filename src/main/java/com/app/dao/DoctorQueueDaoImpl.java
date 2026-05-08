@@ -137,4 +137,31 @@ public class DoctorQueueDaoImpl implements DoctorQueueDao {
                 return prescriptionMedicineRepository
                                 .findByPrescriptionId(prescriptionId);
         }
+
+        @Override
+        public Consultation getConsultationByAppointmentId(
+                        Long appointmentId) {
+
+                return consultationRepository
+                                .findByAppointmentId(appointmentId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Consultation not found"));
+        }
+
+        @Override
+        public Prescription getPrescriptionByConsultationId(
+                        Long consultationId) {
+
+                return prescriptionRepository
+                                .findByConsultationId(consultationId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Prescription not found"));
+        }
+
+        @Override
+        public void saveMedicines(
+                        List<PrescriptionMedicine> medicines) {
+
+                prescriptionMedicineRepository.saveAll(medicines);
+        }
 }

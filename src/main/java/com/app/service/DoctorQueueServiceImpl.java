@@ -4,6 +4,7 @@ import com.app.dao.DoctorQueueDao;
 import com.app.dao.ProfileDao;
 import com.app.dto.CallNextPatientRequest;
 import com.app.dto.CallNextPatientResponse;
+import com.app.dto.CompleteConsultationRequest;
 import com.app.dto.ConsultationDetailsResponse;
 import com.app.dto.ConsultationPageResponse;
 import com.app.dto.ConsultationPatientResponse;
@@ -17,6 +18,7 @@ import com.app.entity.Appointment;
 import com.app.entity.Consultation;
 import com.app.entity.Patient;
 import com.app.entity.Prescription;
+import com.app.entity.PrescriptionMedicine;
 import com.app.entity.Staff;
 import com.app.enums.AppointmentStatus;
 import com.app.exception.BadRequestException;
@@ -28,6 +30,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -241,5 +244,83 @@ public class DoctorQueueServiceImpl implements DoctorQueueService {
                                                                 .medicines(medicines)
                                                                 .build())
                                 .build();
+        }
+
+        @Override
+        public void completeConsultation(
+                        CompleteConsultationRequest request) {
+
+                String email = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getName();
+
+                Staff doctor = profileDao.findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+
+                Appointment appointment = doctorQueueDao
+                                .getAppointmentById(request.getAppointmentId());
+
+                if (!appointment.getDoctor().getId().equals(doctor.getId())) {
+                        throw new UnauthorizedException(
+                                        "Appointment does not belong to doctor");
+                }
+
+                if (appointment.getStatus() != AppointmentStatus.IN_PROGRESS) {
+                        throw new BadRequestException(
+                                        "Appointment is not in progress");
+                }
+
+                Consultation consultation = doctorQueueDao.getConsultationByAppointmentId(
+                                appointment.getId());
+
+                Prescription prescription = doctorQueueDao.getPrescriptionByConsultationId(
+                                consultation.getId());
+
+                if (Boolean.TRUE.equals(consultation.getIsLocked())) {
+                        throw new BadRequestException(
+                                        "Consultation already locked");
+                }
+
+                if (Boolean.TRUE.equals(prescription.getIsLocked())) {
+                        throw new BadRequestException(
+                                        "Prescription already locked");
+                }
+
+                consultation.setDiagnosis(request.getDiagnosis());
+                consultation.setClinicalNotes(request.getClinicalNotes());
+                consultation.setCompletedAt(LocalDateTime.now());
+                consultation.setIsLocked(true);
+
+                prescription.setGeneralInstructions(
+                                request.getGeneralInstructions());
+
+                prescription.setFollowUpDate(
+                                request.getFollowUpDate());
+
+                prescription.setFollowUpNotes(
+                                request.getFollowUpNotes());
+
+                prescription.setIsLocked(true);
+
+                List<PrescriptionMedicine> medicines = request.getMedicines()
+                                .stream()
+                                .map(medicine -> PrescriptionMedicine.builder()
+                                                .prescription(prescription)
+                                                .medicineName(medicine.getMedicineName())
+                                                .medicineCategory(medicine.getMedicineCategory())
+                                                .medicineUnit(medicine.getMedicineUnit())
+                                                .dosage(medicine.getDosage())
+                                                .frequency(medicine.getFrequency())
+                                                .durationDays(medicine.getDurationDays())
+                                                .instructions(medicine.getInstructions())
+                                                .build())
+                                .toList();
+
+                doctorQueueDao.saveMedicines(medicines);
+
+                appointment.setStatus(AppointmentStatus.COMPLETED);
+
+                doctorQueueDao.save(appointment);
         }
 }

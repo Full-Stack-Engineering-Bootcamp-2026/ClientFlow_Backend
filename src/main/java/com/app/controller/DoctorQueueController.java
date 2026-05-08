@@ -2,6 +2,7 @@ package com.app.controller;
 
 import com.app.dto.CallNextPatientRequest;
 import com.app.dto.CallNextPatientResponse;
+import com.app.dto.CompleteConsultationRequest;
 import com.app.dto.ConsultationPageResponse;
 import com.app.dto.DoctorDashboardResponse;
 import com.app.response.ApiResponse;
@@ -60,6 +61,19 @@ public class DoctorQueueController {
                                                 .data(
                                                                 doctorQueueService
                                                                                 .getConsultationPage(appointmentId))
+                                                .build());
+        }
+
+        @PostMapping("/consultations/complete")
+        public ResponseEntity<ApiResponse<Void>> completeConsultation(
+                        @Valid @RequestBody CompleteConsultationRequest request) {
+
+                doctorQueueService.completeConsultation(request);
+
+                return ResponseEntity.ok(
+                                ApiResponse.<Void>builder()
+                                                .success(true)
+                                                .message("Consultation completed successfully")
                                                 .build());
         }
 }
