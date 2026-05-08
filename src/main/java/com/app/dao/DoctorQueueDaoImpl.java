@@ -1,9 +1,16 @@
 package com.app.dao;
 
 import com.app.entity.Appointment;
+import com.app.entity.Consultation;
+import com.app.entity.Prescription;
+import com.app.entity.PrescriptionMedicine;
 import com.app.enums.AppointmentStatus;
 import com.app.exception.ResourceNotFoundException;
 import com.app.repository.AppointmentRepository;
+import com.app.repository.ConsultationRepository;
+import com.app.repository.PrescriptionMedicineRepository;
+import com.app.repository.PrescriptionRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +23,11 @@ import java.util.Optional;
 public class DoctorQueueDaoImpl implements DoctorQueueDao {
 
         private final AppointmentRepository appointmentRepository;
+        private final ConsultationRepository consultationRepository;
+
+        private final PrescriptionRepository prescriptionRepository;
+
+        private final PrescriptionMedicineRepository prescriptionMedicineRepository;
 
         @Override
         public long countByDoctorAndStatus(
@@ -84,5 +96,45 @@ public class DoctorQueueDaoImpl implements DoctorQueueDao {
         @Override
         public Appointment save(Appointment appointment) {
                 return appointmentRepository.save(appointment);
+        }
+
+        @Override
+        public Consultation getOrCreateConsultation(Appointment appointment) {
+
+                return consultationRepository
+                                .findByAppointmentId(appointment.getId())
+                                .orElseGet(() -> {
+
+                                        Consultation consultation = Consultation.builder()
+                                                        .appointment(appointment)
+                                                        .doctor(appointment.getDoctor())
+                                                        .build();
+
+                                        return consultationRepository.save(consultation);
+                                });
+        }
+
+        @Override
+        public Prescription getOrCreatePrescription(
+                        Consultation consultation) {
+
+                return prescriptionRepository
+                                .findByConsultationId(consultation.getId())
+                                .orElseGet(() -> {
+
+                                        Prescription prescription = Prescription.builder()
+                                                        .consultation(consultation)
+                                                        .build();
+
+                                        return prescriptionRepository.save(prescription);
+                                });
+        }
+
+        @Override
+        public List<PrescriptionMedicine> getMedicines(
+                        Long prescriptionId) {
+
+                return prescriptionMedicineRepository
+                                .findByPrescriptionId(prescriptionId);
         }
 }

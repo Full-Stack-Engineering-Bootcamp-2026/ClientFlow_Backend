@@ -1,6 +1,9 @@
 package com.app.dao;
 
 import com.app.entity.Appointment;
+import com.app.entity.Consultation;
+import com.app.entity.Prescription;
+import com.app.entity.PrescriptionMedicine;
 import com.app.enums.AppointmentStatus;
 
 import java.time.LocalDate;
@@ -31,4 +34,10 @@ public interface DoctorQueueDao {
         boolean existsInProgressAppointment(Long doctorId);
 
         Appointment save(Appointment appointment);
+
+        Consultation getOrCreateConsultation(Appointment appointment);
+
+        Prescription getOrCreatePrescription(Consultation consultation);
+
+        List<PrescriptionMedicine> getMedicines(Long prescriptionId);
 }

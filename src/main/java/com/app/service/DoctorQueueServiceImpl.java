@@ -4,12 +4,19 @@ import com.app.dao.DoctorQueueDao;
 import com.app.dao.ProfileDao;
 import com.app.dto.CallNextPatientRequest;
 import com.app.dto.CallNextPatientResponse;
+import com.app.dto.ConsultationDetailsResponse;
+import com.app.dto.ConsultationPageResponse;
+import com.app.dto.ConsultationPatientResponse;
 import com.app.dto.CurrentPatientResponse;
 import com.app.dto.DoctorDashboardResponse;
 import com.app.dto.DoctorQueueStatsResponse;
+import com.app.dto.MedicineResponse;
+import com.app.dto.PrescriptionDetailsResponse;
 import com.app.dto.WaitingPatientResponse;
 import com.app.entity.Appointment;
+import com.app.entity.Consultation;
 import com.app.entity.Patient;
+import com.app.entity.Prescription;
 import com.app.entity.Staff;
 import com.app.enums.AppointmentStatus;
 import com.app.exception.BadRequestException;
@@ -164,6 +171,75 @@ public class DoctorQueueServiceImpl implements DoctorQueueService {
                 return CallNextPatientResponse.builder()
                                 .message("Patient moved to current queue")
                                 .appointmentId(appointment.getId())
+                                .build();
+        }
+
+        @Override
+        public ConsultationPageResponse getConsultationPage(
+                        Long appointmentId) {
+
+                String email = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getName();
+
+                Staff doctor = profileDao.findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+
+                Appointment appointment = doctorQueueDao
+                                .getAppointmentById(appointmentId);
+
+                if (!appointment.getDoctor().getId().equals(doctor.getId())) {
+                        throw new UnauthorizedException(
+                                        "Appointment does not belong to doctor");
+                }
+
+                Consultation consultation = doctorQueueDao.getOrCreateConsultation(appointment);
+
+                Prescription prescription = doctorQueueDao.getOrCreatePrescription(consultation);
+
+                List<MedicineResponse> medicines = doctorQueueDao.getMedicines(prescription.getId())
+                                .stream()
+                                .map(medicine -> MedicineResponse.builder()
+                                                .medicineName(medicine.getMedicineName())
+                                                .medicineCategory(medicine.getMedicineCategory())
+                                                .medicineUnit(medicine.getMedicineUnit())
+                                                .dosage(medicine.getDosage())
+                                                .frequency(medicine.getFrequency())
+                                                .durationDays(medicine.getDurationDays())
+                                                .instructions(medicine.getInstructions())
+                                                .build())
+                                .toList();
+
+                Patient patient = appointment.getPatient();
+
+                return ConsultationPageResponse.builder()
+                                .appointmentId(appointment.getId())
+                                .queueNumber(appointment.getQueueNumber())
+                                .patient(
+                                                ConsultationPatientResponse.builder()
+                                                                .id(patient.getId())
+                                                                .name(patient.getFullName())
+                                                                .gender(patient.getGender().name())
+                                                                .age(calculateAge(patient))
+                                                                .build())
+                                .consultation(
+                                                ConsultationDetailsResponse.builder()
+                                                                .id(consultation.getId())
+                                                                .diagnosis(consultation.getDiagnosis())
+                                                                .clinicalNotes(consultation.getClinicalNotes())
+                                                                .build())
+                                .prescription(
+                                                PrescriptionDetailsResponse.builder()
+                                                                .id(prescription.getId())
+                                                                .generalInstructions(
+                                                                                prescription.getGeneralInstructions())
+                                                                .followUpDate(
+                                                                                prescription.getFollowUpDate())
+                                                                .followUpNotes(
+                                                                                prescription.getFollowUpNotes())
+                                                                .medicines(medicines)
+                                                                .build())
                                 .build();
         }
 }
