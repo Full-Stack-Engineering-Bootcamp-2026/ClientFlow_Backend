@@ -1,5 +1,6 @@
 package com.app.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +13,10 @@ public interface StaffRepository extends JpaRepository<Staff, Long> {
      boolean existsByEmail(String email);
 
     boolean existsByEmployeeId(String employeeId);
+
+     long countByRole_NameAndIsActiveTrue(String roleName);
+     
+     List<Staff> findByRole_NameAndIsActiveTrue(String roleName);
+
+     long countByRoleId(Long roleId);
 }
