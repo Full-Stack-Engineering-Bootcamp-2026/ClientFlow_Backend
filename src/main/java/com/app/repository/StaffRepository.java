@@ -25,4 +25,9 @@ public interface StaffRepository extends
         ORDER BY s.fullName ASC
         """)
 List<Staff> findAllActiveDoctors();
+long countByRole_NameAndIsActiveTrue(String roleName);
+     
+     List<Staff> findByRole_NameAndIsActiveTrue(String roleName);
+
+     long countByRoleId(Long roleId);
 }

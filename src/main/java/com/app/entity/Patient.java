@@ -1,3 +1,4 @@
+
 package com.app.entity;
 
 import com.app.entity.base.CreatedOnly;

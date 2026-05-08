@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
+import java.util.Optional;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -30,4 +30,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("doctorId") Long doctorId,
             @Param("appointmentDate") LocalDate appointmentDate
     );
+    long countByStatus(AppointmentStatus status);
+
+    long countByDoctorIdAndAppointmentDate(Long doctorId, LocalDate date);
+
+    Optional<Appointment> findTopByDoctorIdAndAppointmentDateOrderByQueueNumberDesc(Long doctorId,LocalDate date);
+
+    boolean existsByDoctorIdAndPatientIdAndAppointmentDate(Long doctorId,Long patientId,LocalDate date);
+
+long countByAppointmentDate(LocalDate appointmentDate);
 }

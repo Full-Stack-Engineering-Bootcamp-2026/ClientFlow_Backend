@@ -20,9 +20,6 @@ public class CreateStaffRequest {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
-    @NotBlank(message = "Employee ID is required")
-    private String employeeId;
-
     @NotNull(message = "Role ID is required")
     private Long roleId;
 
