@@ -1,12 +1,7 @@
 package com.app.dao;
 
 import com.app.entity.PasswordResetToken;
-import com.app.exception.BadRequestException;
-import com.app.repository.PasswordResetTokenRepository;
 
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Component;
 
 public interface PasswordResetTokenDao {
 

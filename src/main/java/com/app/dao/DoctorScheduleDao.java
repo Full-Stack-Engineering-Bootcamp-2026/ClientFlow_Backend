@@ -2,12 +2,7 @@ package com.app.dao;
 
 import com.app.entity.DoctorSchedule;
 import com.app.enums.DayOfWeek;
-import com.app.exception.ResourceNotFoundException;
-import com.app.repository.DoctorScheduleRepository;
 
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 

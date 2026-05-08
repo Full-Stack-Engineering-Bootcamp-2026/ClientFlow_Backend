@@ -6,7 +6,7 @@ import com.app.repository.PasswordResetTokenRepository;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.stereotype.Component;
+
 import org.springframework.stereotype.Repository;
 
 @Repository

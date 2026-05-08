@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import com.app.dto.CreateStaffRequest;
 import com.app.dto.CreateStaffResponse;
 import com.app.dto.StaffResponse;
-import com.app.entity.Role;
+
 
 
 public interface StaffService {

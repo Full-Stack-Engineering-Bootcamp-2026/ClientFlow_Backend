@@ -2,7 +2,7 @@ package com.app.dto;
 
 import java.time.LocalDate;
 
-import com.app.enums.DayOfWeek;
+
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
