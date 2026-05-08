@@ -1,11 +1,11 @@
 package com.app.controller;
 
-import com.app.dto.patient.request.BookAppointmentRequest;
-import com.app.dto.patient.response.AppointmentBookingResponse;
+import com.app.dto.AppointmentRequest;
+import com.app.dto.AppointmentResponse;
 import com.app.dto.patient.response.DoctorDropdownResponse;
 import com.app.dto.patient.response.PatientSearchResponse;
 import com.app.response.ApiResponse;
-import com.app.service.patient.AppointmentService;
+import com.app.service.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -54,16 +54,16 @@ public ResponseEntity<ApiResponse<List<DoctorDropdownResponse>>> getDoctors() {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','NURSE')")
-    public ResponseEntity<ApiResponse<AppointmentBookingResponse>> bookAppointment(
-            @Valid @RequestBody BookAppointmentRequest request
+    public ResponseEntity<ApiResponse<AppointmentResponse>> bookAppointment(
+            @Valid @RequestBody AppointmentRequest request
     ) {
 
-        AppointmentBookingResponse response = appointmentService
+        AppointmentResponse response = appointmentService
                 .bookAppointment(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(
-                        ApiResponse.<AppointmentBookingResponse>builder()
+                        ApiResponse.<AppointmentResponse>builder()
                                 .success(true)
                                 .message("Appointment booked successfully")
                                 .data(response)

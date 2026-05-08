@@ -1,30 +1,39 @@
 package com.app.dao;
 
-import java.time.LocalDate;
-
 import com.app.entity.Appointment;
-import com.app.enums.AppointmentStatus;
-import com.app.repository.AppointmentRepository;
 
-import lombok.RequiredArgsConstructor;
-
+import java.time.LocalDate;
 
 public interface AppointmentDao {
 
+    long getTotalAppointmentsCount();
 
-    public long getTotalAppointmentsCount() ;
+    long getCompletedAppointmentsCount();
 
-    public long getCompletedAppointmentsCount() ;
+    long getCancelledAppointmentsCount();
 
-    public long getCancelledAppointmentsCount() ;
+    boolean existsPatientBooking(
+            Long doctorId,
+            Long patientId,
+            LocalDate date
+    );
 
-    public boolean existsPatientBooking(Long doctorId,Long patientId,LocalDate date) ;
+    long countDoctorAppointments(
+            Long doctorId,
+            LocalDate date
+    );
 
-    public long countDoctorAppointments(Long doctorId,LocalDate date) ;
+    int getNextQueueNumber(
+            Long doctorId,
+            LocalDate date
+    );
 
-    public int getNextQueueNumber(Long doctorId,LocalDate date) ;
+    Appointment save(Appointment appointment);
 
-    public Appointment save(Appointment appointment) ;
-    
-    public long countAppointmentsByDate(LocalDate date) ;
+    long countAppointmentsByDate(LocalDate date);
+
+    Integer findMaxQueueNumber(
+            Long doctorId,
+            LocalDate appointmentDate
+    );
 }

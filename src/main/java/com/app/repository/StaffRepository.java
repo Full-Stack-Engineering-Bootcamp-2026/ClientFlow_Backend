@@ -17,14 +17,14 @@ public interface StaffRepository extends
 
     boolean existsByEmployeeId(String employeeId);
 
-    @Query("""
-        SELECT s
-        FROM Staff s
-        WHERE s.role.name = 'DOCTOR'
-        AND s.isActive = true
-        ORDER BY s.fullName ASC
-        """)
-List<Staff> findAllActiveDoctors();
+//     @Query("""
+//         SELECT s
+//         FROM Staff s
+//         WHERE s.role.name = 'DOCTOR'
+//         AND s.isActive = true
+//         ORDER BY s.fullName ASC
+//         """)
+// List<Staff> findAllActiveDoctors();
 long countByRole_NameAndIsActiveTrue(String roleName);
      
      List<Staff> findByRole_NameAndIsActiveTrue(String roleName);

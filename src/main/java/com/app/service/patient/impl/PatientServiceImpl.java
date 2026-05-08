@@ -1,6 +1,6 @@
 package com.app.service.patient.impl;
 
-import com.app.dao.patient.PatientDao;
+import com.app.dao.PatientDao;
 import com.app.dto.patient.request.RegisterPatientRequest;
 import com.app.dto.patient.response.PatientResponse;
 import com.app.entity.Patient;

@@ -20,16 +20,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             List<AppointmentStatus> statuses
     );
 
-    @Query("""
-            SELECT COALESCE(MAX(a.queueNumber),0)
-            FROM Appointment a
-            WHERE a.doctor.id = :doctorId
-            AND a.appointmentDate = :appointmentDate
-            """)
-    Integer findMaxQueueNumber(
-            @Param("doctorId") Long doctorId,
-            @Param("appointmentDate") LocalDate appointmentDate
-    );
+//     @Query("""
+//             SELECT COALESCE(MAX(a.queueNumber),0)
+//             FROM Appointment a
+//             WHERE a.doctor.id = :doctorId
+//             AND a.appointmentDate = :appointmentDate
+//             """)
+//     Integer findMaxQueueNumber(
+//             @Param("doctorId") Long doctorId,
+//             @Param("appointmentDate") LocalDate appointmentDate
+//     );
     long countByStatus(AppointmentStatus status);
 
     long countByDoctorIdAndAppointmentDate(Long doctorId, LocalDate date);
