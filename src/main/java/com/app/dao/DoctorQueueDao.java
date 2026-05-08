@@ -9,24 +9,26 @@ import java.util.Optional;
 
 public interface DoctorQueueDao {
 
-    long countByDoctorAndStatus(
-            Long doctorId,
-            LocalDate date,
-            List<AppointmentStatus> statuses
-    );
+        long countByDoctorAndStatus(
+                        Long doctorId,
+                        LocalDate date,
+                        List<AppointmentStatus> statuses);
 
-    long countByDoctorAndDate(
-            Long doctorId,
-            LocalDate date
-    );
+        long countByDoctorAndDate(
+                        Long doctorId,
+                        LocalDate date);
 
-    Optional<Appointment> getCurrentPatient(
-            Long doctorId,
-            LocalDate date
-    );
+        Optional<Appointment> getCurrentPatient(
+                        Long doctorId,
+                        LocalDate date);
 
-    List<Appointment> getWaitingPatients(
-            Long doctorId,
-            LocalDate date
-    );
+        List<Appointment> getWaitingPatients(
+                        Long doctorId,
+                        LocalDate date);
+
+        Appointment getAppointmentById(Long appointmentId);
+
+        boolean existsInProgressAppointment(Long doctorId);
+
+        Appointment save(Appointment appointment);
 }
