@@ -14,19 +14,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.app.dao.PasswordResetTokenDao;
 import com.app.dao.RoleDao;
+import com.app.dao.DoctorScheduleDao;
 import com.app.dao.StaffDao;
 import com.app.dto.CreateStaffRequest;
 import com.app.dto.CreateStaffResponse;
 import com.app.dto.RoleResponse;
 import com.app.dto.StaffResponse;
 import com.app.entity.PasswordResetToken;
+import com.app.entity.DoctorSchedule;
 import com.app.entity.Role;
 import com.app.entity.Staff;
+import com.app.enums.DayOfWeek;
 import com.app.exception.DuplicateResourceException;
 
 import lombok.RequiredArgsConstructor;
 
 import jakarta.persistence.criteria.Predicate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +41,8 @@ public class StaffServiceImpl implements StaffService{
     private final PasswordEncoder passwordEncoder;
 
     private final StaffDao staffDao;
+
+    private final DoctorScheduleDao scheduleDao;
 
     private final RoleDao roleDao;
 
@@ -74,6 +80,10 @@ public class StaffServiceImpl implements StaffService{
                 .build();
 
         staffDao.save(staff);
+
+        if (role.getName().equalsIgnoreCase("DOCTOR")) {
+            createStandardDoctorSchedule(staff);
+        }
 
         String token = UUID.randomUUID().toString();
 
@@ -230,5 +240,37 @@ public class StaffServiceImpl implements StaffService{
 
         return prefix +
                 String.format("%03d", count + 1);
+    }
+
+    private void createStandardDoctorSchedule(Staff doctor) {
+
+        List<DayOfWeek> standardDays = List.of(
+                DayOfWeek.MON,
+                DayOfWeek.TUE,
+                DayOfWeek.WED,
+                DayOfWeek.THU,
+                DayOfWeek.FRI
+        );
+
+        for (DayOfWeek day : standardDays) {
+            if (scheduleDao.existsByDoctorAndDay(
+                    doctor.getId(),
+                    day
+            )) {
+                continue;
+            }
+
+            DoctorSchedule schedule =
+                    DoctorSchedule.builder()
+                            .doctor(doctor)
+                            .dayOfWeek(day)
+                            .startTime(LocalTime.of(9, 0))
+                            .endTime(LocalTime.of(17, 0))
+                            .maxAppointments(20)
+                            .isActive(true)
+                            .build();
+
+            scheduleDao.save(schedule);
+        }
     }
 }

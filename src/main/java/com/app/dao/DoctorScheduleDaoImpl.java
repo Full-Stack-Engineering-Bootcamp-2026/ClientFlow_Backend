@@ -37,6 +37,15 @@ public class DoctorScheduleDaoImpl implements DoctorScheduleDao {
                 .orElseThrow(() -> new ResourceNotFoundException("Schedule not found"));
     }
 
+    public DoctorSchedule getAnyDoctorSchedule(
+ Long doctorId,
+ DayOfWeek day
+ ) {
+
+ return scheduleRepository
+ .findByDoctorIdAndDayOfWeek(doctorId, day)
+ .orElse(null);
+ }
     public boolean existsByDoctorAndDay(
             Long doctorId,
             DayOfWeek day) {
