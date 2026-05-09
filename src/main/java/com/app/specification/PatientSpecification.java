@@ -9,14 +9,13 @@ public class PatientSpecification {
     }
 
     public static Specification<Patient> searchByKeyword(String keyword) {
-
         return (root, query, cb) -> {
 
             String pattern = "%" + keyword.toLowerCase() + "%";
 
             return cb.or(
                     cb.like(cb.lower(root.get("fullName")), pattern),
-                    cb.like(cb.lower(root.get("mobile")), pattern)
+                    cb.like(root.get("mobile"), "%" + keyword +"%")
             );
         };
     }

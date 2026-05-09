@@ -5,6 +5,7 @@ import com.app.dao.ProfileDao;
 import com.app.dto.CallNextPatientRequest;
 import com.app.dto.CallNextPatientResponse;
 import com.app.dto.CompleteConsultationRequest;
+import com.app.dto.CompletedConsultationResponse;
 import com.app.dto.ConsultationDetailsResponse;
 import com.app.dto.ConsultationPageResponse;
 import com.app.dto.ConsultationPatientResponse;
@@ -24,7 +25,6 @@ import com.app.enums.AppointmentStatus;
 import com.app.exception.BadRequestException;
 import com.app.exception.ResourceNotFoundException;
 import com.app.exception.UnauthorizedException;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -84,6 +84,37 @@ public class DoctorQueueServiceImpl implements DoctorQueueService {
                                 .map(this::mapWaitingPatient)
                                 .toList();
 
+                List<CompletedConsultationResponse> completedConsultations = doctorQueueDao
+                                .getCompletedConsultations(
+                                                doctor.getId())
+                                .stream()
+                                .map(consultation -> {
+
+                                        Appointment appointment = consultation.getAppointment();
+
+                                        return CompletedConsultationResponse
+                                                        .builder()
+                                                        .consultationId(
+                                                                        consultation.getId())
+                                                        .appointmentId(
+                                                                        appointment.getId())
+                                                        .queueNumber(
+                                                                        appointment.getQueueNumber())
+                                                        .patientName(
+                                                                        appointment.getPatient()
+                                                                                        .getFullName())
+                                                        .completedAt(
+                                                                        consultation.getCompletedAt()
+                                                                                        .format(
+                                                                                                        DateTimeFormatter
+                                                                                                                        .ofPattern(
+                                                                                                                                        "hh:mm a")))
+                                                        .diagnosis(
+                                                                        consultation.getDiagnosis())
+                                                        .build();
+                                })
+                                .toList();
+
                 return DoctorDashboardResponse.builder()
                                 .stats(
                                                 DoctorQueueStatsResponse.builder()
@@ -94,6 +125,8 @@ public class DoctorQueueServiceImpl implements DoctorQueueService {
                                                                 .build())
                                 .currentPatient(currentPatient)
                                 .waitingPatients(waitingPatients)
+                                .completedConsultations(
+                                                completedConsultations)
                                 .build();
         }
 
@@ -323,4 +356,5 @@ public class DoctorQueueServiceImpl implements DoctorQueueService {
 
                 doctorQueueDao.save(appointment);
         }
+
 }
