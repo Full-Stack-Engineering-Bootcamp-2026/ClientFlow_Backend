@@ -9,6 +9,7 @@ import java.util.List;
 public interface DoctorScheduleDao {
 
     DoctorSchedule getDoctorSchedule(Long doctorId, DayOfWeek day);
+    DoctorSchedule getAnyDoctorSchedule(Long doctorId, DayOfWeek day);
 
     public DoctorSchedule getById(Long id);
 

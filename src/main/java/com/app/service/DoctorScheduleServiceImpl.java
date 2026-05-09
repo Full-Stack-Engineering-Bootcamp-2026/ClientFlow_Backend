@@ -1,12 +1,19 @@
 package com.app.service;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.app.dto.AdminDoctorSchedulePageResponse;
+import com.app.dto.AdminDoctorScheduleRowResponse;
+import com.app.dto.AdminDoctorScheduleStatsResponse;
+import com.app.dto.ChangeDoctorScheduleRequest;
 import com.app.dao.DoctorScheduleDao;
 import com.app.dao.LeaveDao;
 import com.app.dao.StaffDao;
@@ -26,6 +33,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class DoctorScheduleServiceImpl implements DoctorScheduleService{
+
+    private static final LocalTime STANDARD_START_TIME = LocalTime.of(9, 0);
+    private static final LocalTime STANDARD_END_TIME = LocalTime.of(17, 0);
+    private static final int STANDARD_MAX_APPOINTMENTS = 20;
 
     private final DoctorScheduleDao scheduleDao;
     private final StaffDao staffDao;
@@ -231,5 +242,234 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService{
         }
 
         scheduleDao.save(schedule);
+    }
+
+    public AdminDoctorSchedulePageResponse getAdminSchedulePage(
+            LocalDate startDate,
+            String specialization,
+            String status,
+            int page,
+            int size
+    ) {
+
+        LocalDate startOfWeek =
+                startDate.with(java.time.DayOfWeek.MONDAY);
+
+        LocalDate endOfWeek = startOfWeek.plusDays(6);
+
+        List<Staff> doctors = staffDao.getActiveDoctors();
+
+        List<AdminDoctorScheduleRowResponse> rows =
+                new ArrayList<>();
+
+        long queueCapacityToday = 0;
+        long onLeaveThisWeek = 0;
+        Set<String> specializations = new HashSet<>();
+
+        DayOfWeek today = DayOfWeek.valueOf(
+                LocalDate.now()
+                        .getDayOfWeek()
+                        .name()
+                        .substring(0, 3)
+        );
+
+        for (Staff doctor : doctors) {
+            String doctorSpecialization =
+                    doctor.getSpecialization() == null
+                            || doctor.getSpecialization().isBlank()
+                            ? "General Medicine"
+                            : doctor.getSpecialization();
+
+            specializations.add(doctorSpecialization);
+
+            List<DoctorSchedule> schedules =
+                    scheduleDao.getActiveSchedulesByDoctor(
+                            doctor.getId()
+                    );
+
+            List<LeaveException> leaves =
+                    leaveDao.getDoctorLeavesBetween(
+                            doctor.getId(),
+                            startOfWeek,
+                            endOfWeek
+                    );
+
+            List<String> workingDays = schedules.stream()
+                    .map(s -> s.getDayOfWeek().name())
+                    .toList();
+
+            List<String> leaveDates = leaves.stream()
+                    .map(l -> l.getExceptionDate().toString())
+                    .toList();
+
+            boolean doctorOnLeaveThisWeek =
+                    !leaveDates.isEmpty();
+            boolean doctorOnLeaveToday =
+                    leaveDates.contains(LocalDate.now().toString());
+
+            if (doctorOnLeaveThisWeek) {
+                onLeaveThisWeek++;
+            }
+
+            for (DoctorSchedule schedule : schedules) {
+                if (schedule.getDayOfWeek() == today
+                        && !doctorOnLeaveToday) {
+                    queueCapacityToday +=
+                            schedule.getMaxAppointments();
+                    break;
+                }
+            }
+
+            DoctorSchedule firstSchedule =
+                    schedules.isEmpty() ? null : schedules.get(0);
+
+            rows.add(
+                    new AdminDoctorScheduleRowResponse(
+                            doctor.getId(),
+                            doctor.getFullName(),
+                            doctorSpecialization,
+                            firstSchedule == null
+                                    ? STANDARD_START_TIME.toString()
+                                    : firstSchedule.getStartTime().toString(),
+                            firstSchedule == null
+                                    ? STANDARD_END_TIME.toString()
+                                    : firstSchedule.getEndTime().toString(),
+                            firstSchedule == null
+                                    ? STANDARD_MAX_APPOINTMENTS
+                                    : firstSchedule.getMaxAppointments(),
+                            workingDays,
+                            leaveDates,
+                            doctorOnLeaveThisWeek
+                    )
+            );
+        }
+
+        List<AdminDoctorScheduleRowResponse> filteredRows =
+                rows.stream()
+                        .filter(row ->
+                                specialization == null
+                                        || specialization.isBlank()
+                                        || row.getSpecialization()
+                                                .equalsIgnoreCase(
+                                                        specialization
+                                                )
+                        )
+                        .filter(row -> {
+                            if (status == null
+                                    || status.equalsIgnoreCase("ALL")) {
+                                return true;
+                            }
+
+                            if (status.equalsIgnoreCase("ON_LEAVE")) {
+                                return row.getOnLeaveThisWeek();
+                            }
+
+                            if (status.equalsIgnoreCase("WORKING")) {
+                                return !row.getOnLeaveThisWeek();
+                            }
+
+                            return true;
+                        })
+                        .toList();
+
+        int safePage = Math.max(0, page);
+        int safeSize = Math.max(1, size);
+        int fromIndex = Math.min(
+                safePage * safeSize,
+                filteredRows.size()
+        );
+        int toIndex = Math.min(
+                fromIndex + safeSize,
+                filteredRows.size()
+        );
+
+        List<AdminDoctorScheduleRowResponse> pageRows =
+                filteredRows.subList(fromIndex, toIndex);
+
+        int totalPages =
+                (int) Math.ceil(
+                        filteredRows.size() / (double) safeSize
+                );
+
+        return new AdminDoctorSchedulePageResponse(
+                pageRows,
+                filteredRows.size(),
+                totalPages,
+                safeSize,
+                safePage,
+                new AdminDoctorScheduleStatsResponse(
+                        doctors.size(),
+                        queueCapacityToday,
+                        onLeaveThisWeek
+                ),
+                specializations.stream()
+                        .sorted()
+                        .toList()
+        );
+    }
+
+    @Transactional
+    public void changeDoctorSchedule(
+            ChangeDoctorScheduleRequest request
+    ) {
+
+        Staff doctor = staffDao.getById(request.getDoctorId());
+
+        if (!doctor.getRole().getName().equals("DOCTOR")) {
+            throw new BadRequestException("Invalid doctor");
+        }
+
+        LocalTime startTime =
+                request.getStartTime() == null
+                        ? STANDARD_START_TIME
+                        : request.getStartTime();
+
+        LocalTime endTime =
+                request.getEndTime() == null
+                        ? STANDARD_END_TIME
+                        : request.getEndTime();
+
+        Integer maxAppointments =
+                request.getMaxAppointments() == null
+                        ? STANDARD_MAX_APPOINTMENTS
+                        : request.getMaxAppointments();
+
+        if (startTime.isAfter(endTime)) {
+            throw new BadRequestException(
+                    "Start time must be before end time"
+            );
+        }
+
+        for (LocalDate date : request.getDates()) {
+            DayOfWeek day = DayOfWeek.valueOf(
+                    date.getDayOfWeek()
+                            .name()
+                            .substring(0, 3)
+            );
+
+            DoctorSchedule schedule =
+                    scheduleDao.getAnyDoctorSchedule(
+                            doctor.getId(),
+                            day
+                    );
+
+            if (schedule == null) {
+                schedule = DoctorSchedule.builder()
+                        .doctor(doctor)
+                        .dayOfWeek(day)
+                        .startTime(startTime)
+                        .endTime(endTime)
+                        .maxAppointments(maxAppointments)
+                        .isActive(true)
+                        .build();
+            } else {
+                schedule.setStartTime(startTime);
+                schedule.setEndTime(endTime);
+                schedule.setMaxAppointments(maxAppointments);
+                schedule.setIsActive(true);
+            }
+
+            scheduleDao.save(schedule);
+        }
     }
 }

@@ -8,6 +8,8 @@ import com.app.dto.DoctorScheduleResponse;
 import com.app.dto.DoctorWeeklyScheduleRequest;
 import com.app.dto.DoctorWeeklyScheduleResponse;
 import com.app.dto.UpdateDoctorScheduleRequest;
+import com.app.dto.ChangeDoctorScheduleRequest;
+import com.app.dto.AdminDoctorSchedulePageResponse;
 
 
 public interface DoctorScheduleService {
@@ -24,4 +26,13 @@ public interface DoctorScheduleService {
 
     void updateSchedule(Long scheduleId,UpdateDoctorScheduleRequest request);
 
+    AdminDoctorSchedulePageResponse getAdminSchedulePage(
+        LocalDate startDate,
+        String specialization,
+        String status,
+         int page, int size
+    );
+     void changeDoctorSchedule(ChangeDoctorScheduleRequest request);
+
+    
 }

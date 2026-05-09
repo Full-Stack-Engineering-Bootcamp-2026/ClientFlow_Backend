@@ -12,6 +12,7 @@ public class StaffResponse {
     private String fullName;
     private String email;
     private String role;
+    private String officialRole;
     private Boolean isActive;
     
 }

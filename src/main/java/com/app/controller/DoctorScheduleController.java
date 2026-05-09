@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.dto.AdminDoctorSchedulePageResponse;
+import com.app.dto.ChangeDoctorScheduleRequest;
 import com.app.dto.DoctorScheduleRequest;
 import com.app.dto.DoctorScheduleResponse;
 import com.app.dto.DoctorWeeklyScheduleRequest;
@@ -106,6 +108,45 @@ public class DoctorScheduleController {
                         .message("Weekly schedule fetched successfully")
                         .data(scheduleService.getWeeklySchedule(startDate))
                         .build());
+    }
+
+    @GetMapping("/admin-view")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<AdminDoctorSchedulePageResponse>> getAdminScheduleView(
+            @RequestParam LocalDate startDate,
+            @RequestParam(required = false) String specialization,
+            @RequestParam(required = false, defaultValue = "ALL") String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+
+        return ResponseEntity.ok(
+                ApiResponse.<AdminDoctorSchedulePageResponse>builder()
+                        .success(true)
+                        .message("Doctor schedule view fetched successfully")
+                        .data(scheduleService.getAdminSchedulePage(
+                                startDate,
+                                specialization,
+                                status,
+                                page,
+                                size
+                        ))
+                        .build()
+        );
+    }
+
+    @PostMapping("/change")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> changeSchedule(
+            @Valid @RequestBody ChangeDoctorScheduleRequest request) {
+
+        scheduleService.changeDoctorSchedule(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.<Void>builder()
+                        .success(true)
+                        .message("Schedule changed successfully")
+                        .build()
+        );
     }
 
     @PutMapping("/staff/{scheduleId}")
