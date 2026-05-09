@@ -7,6 +7,5 @@ import com.app.dto.AppointmentResponse;
 
 public interface AppointmentService {
 
-  
     AppointmentResponse bookAppointment(AppointmentRequest request) ;
 }
