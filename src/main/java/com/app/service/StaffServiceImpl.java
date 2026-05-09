@@ -34,202 +34,201 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StaffServiceImpl implements StaffService{
 
- private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
- private final StaffDao staffDao;
+    private final StaffDao staffDao;
 
- private final RoleDao roleDao;
+    private final RoleDao roleDao;
 
- private final PasswordResetTokenDao tokenDao;
+    private final PasswordResetTokenDao tokenDao;
 
- private final EmailService emailService;
+    private final EmailService emailService;
 
- @Transactional
- public CreateStaffResponse createStaff(
- CreateStaffRequest request
- ) {
+    @Transactional
+    public CreateStaffResponse createStaff(
+            CreateStaffRequest request
+    ) {
 
- if (staffDao.existsByEmail(request.getEmail())) {
+        if (staffDao.existsByEmail(request.getEmail())) {
 
- throw new DuplicateResourceException(
- "Email already exists");
- }
+            throw new DuplicateResourceException(
+                    "Email already exists");
+        }
 
- Role role = roleDao.getById(request.getRoleId());
+        Role role = roleDao.getById(request.getRoleId());
 
- Staff staff = Staff.builder()
- .employeeId(generateEmployeeId(role))
- .fullName(request.getFullName())
- .email(request.getEmail())
- .passwordHash(
- passwordEncoder.encode(
- request.getPassword()
- )
- )
- .role(role)
- .phone(request.getPhone())
- .officialRole(request.getOfficialRole())
- .specialization(request.getSpecialization())
- .isActive(true)
- .build();
+        Staff staff = Staff.builder()
+                .employeeId(generateEmployeeId(role))
+                .fullName(request.getFullName())
+                .email(request.getEmail())
+                .passwordHash(
+                        passwordEncoder.encode(
+                                request.getPassword()
+                        )
+                )
+                .role(role)
+                .phone(request.getPhone())
+                .officialRole(request.getOfficialRole())
+                .specialization(request.getSpecialization())
+                .isActive(true)
+                .build();
 
- staffDao.save(staff);
+        staffDao.save(staff);
 
- String token = UUID.randomUUID().toString();
+        String token = UUID.randomUUID().toString();
 
- PasswordResetToken resetToken =
- PasswordResetToken.builder()
- .staff(staff)
- .token(token)
- .expiresAt(
- LocalDateTime.now()
- .plusHours(24)
- )
- .createdAt(LocalDateTime.now())
- .build();
+        PasswordResetToken resetToken =
+                PasswordResetToken.builder()
+                        .staff(staff)
+                        .token(token)
+                        .expiresAt(
+                                LocalDateTime.now()
+                                        .plusHours(24)
+                        )
+                        .createdAt(LocalDateTime.now())
+                        .build();
 
- tokenDao.save(resetToken);
+        tokenDao.save(resetToken);
 
- emailService.sendStaffWelcomeEmail(
- staff.getEmail(),
- token
- );
+        emailService.sendStaffWelcomeEmail(
+                staff.getEmail(),
+                token
+        );
 
- return new CreateStaffResponse(
- staff.getId(),
- staff.getFullName(),
- staff.getEmail(),
- role.getName()
- );
- }
+        return new CreateStaffResponse(
+                staff.getId(),
+                staff.getFullName(),
+                staff.getEmail(),
+                role.getName()
+        );
+    }
 
+    public Page<StaffResponse> getAllStaff(
+            int page,
+            int size,
+            String search,
+            String role,
+            Boolean isActive
+    ) {
 
- public Page<StaffResponse> getAllStaff(
- int page,
- int size,
- String search,
- String role,
- Boolean isActive
- ) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by("createdAt").descending()
+        );
 
- Pageable pageable = PageRequest.of(
- page,
- size,
- Sort.by("createdAt").descending()
- );
+        Page<Staff> staffPage =
+                staffDao.getAllStaff(
+                        buildStaffSpecification(
+                                search,
+                                role,
+                                isActive
+                        ),
+                        pageable
+                );
 
- Page<Staff> staffPage =
- staffDao.getAllStaff(
- buildStaffSpecification(
- search,
- role,
- isActive
- ),
- pageable
- );
+        return staffPage.map(staff ->
+                new StaffResponse(
+                        staff.getId(),
+                        staff.getFullName(),
+                        staff.getEmail(),
+                        staff.getRole().getName(),
+                        staff.getOfficialRole(),
+                        staff.getIsActive()
+                )
+        );
+    }
 
- return staffPage.map(staff ->
- new StaffResponse(
- staff.getId(),
- staff.getFullName(),
- staff.getEmail(),
- staff.getRole().getName(),
- staff.getIsActive()
- )
- );
- }
+    @Transactional
+    public void updateStaffStatus(
+            Long staffId,
+            Boolean isActive
+    ) {
 
- @Transactional
- public void updateStaffStatus(
- Long staffId,
- Boolean isActive
- ) {
+        Staff staff = staffDao.getById(staffId);
 
- Staff staff = staffDao.getById(staffId);
+        staff.setIsActive(isActive);
 
- staff.setIsActive(isActive);
+        staffDao.update(staff);
+    }
 
- staffDao.update(staff);
- }
+    public List<RoleResponse> getAllRoles() {
 
- public List<RoleResponse> getAllRoles() {
+        return roleDao.getAllRoles()
+                .stream()
+                .map(role -> new RoleResponse(
+                        role.getId(),
+                        role.getName()
+                ))
+                .toList();
+    }
 
- return roleDao.getAllRoles()
- .stream()
- .map(role -> new RoleResponse(
- role.getId(),
- role.getName()
- ))
- .toList();
- }
+    private Specification<Staff> buildStaffSpecification(
+            String search,
+            String role,
+            Boolean isActive
+    ) {
 
- private Specification<Staff> buildStaffSpecification(
- String search,
- String role,
- Boolean isActive
- ) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates =
+                    new ArrayList<>();
 
- return (root, query, cb) -> {
- List<Predicate> predicates =
- new ArrayList<>();
+            if (search != null && !search.isBlank()) {
+                predicates.add(
+                        cb.like(
+                                cb.lower(root.get("fullName")),
+                                "%" + search.toLowerCase() + "%"
+                        )
+                );
+            }
 
- if (search != null && !search.isBlank()) {
- predicates.add(
- cb.like(
- cb.lower(root.get("fullName")),
- "%" + search.toLowerCase() + "%"
- )
- );
- }
+            if (role != null && !role.isBlank()) {
+                predicates.add(
+                        cb.equal(
+                                cb.upper(root.get("role").get("name")),
+                                role.toUpperCase()
+                        )
+                );
+            }
 
- if (role != null && !role.isBlank()) {
- predicates.add(
- cb.equal(
- cb.upper(root.get("role").get("name")),
- role.toUpperCase()
- )
- );
- }
+            if (isActive != null) {
+                predicates.add(
+                        cb.equal(root.get("isActive"), isActive)
+                );
+            }
 
- if (isActive != null) {
- predicates.add(
- cb.equal(root.get("isActive"), isActive)
- );
- }
+            return cb.and(
+                    predicates.toArray(new Predicate[0])
+            );
+        };
+    }
 
- return cb.and(
- predicates.toArray(new Predicate[0])
- );
- };
- }
+    private String generateEmployeeId(Role role) {
 
- private String generateEmployeeId(Role role) {
+        String prefix;
 
+        switch (role.getName().toUpperCase()) {
 
-String prefix;
+            case "DOCTOR":
+                prefix = "DOC";
+                break;
 
- switch (role.getName().toUpperCase()) {
+            case "NURSE":
+                prefix = "NUR";
+                break;
 
- case "DOCTOR":
- prefix = "DOC";
- break;
+            case "ADMIN":
+                prefix = "ADM";
+                break;
 
- case "NURSE":
- prefix = "NUR";
- break;
+            default:
+                prefix = "STF";
+        }
 
- case "ADMIN":
- prefix = "ADM";
- break;
+        long count =
+                staffDao.countByRoleId(role.getId());
 
- default:
- prefix = "STF";
- }
-
- long count =
- staffDao.countByRoleId(role.getId());
-
- return prefix +
- String.format("%03d", count + 1);
- }
+        return prefix +
+                String.format("%03d", count + 1);
+    }
 }
