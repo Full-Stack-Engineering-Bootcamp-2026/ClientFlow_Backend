@@ -32,12 +32,10 @@ public class PatientDaoImpl implements PatientDao {
 
             log.error(
                     "Database error while fetching patient by mobile: {}",
-                    ex.getMessage()
-            );
+                    ex.getMessage());
 
             throw new BadRequestException(
-                    "Unable to fetch patient"
-            );
+                    "Unable to fetch patient");
         }
     }
 
@@ -53,12 +51,10 @@ public class PatientDaoImpl implements PatientDao {
 
             log.error(
                     "Database error while saving patient: {}",
-                    ex.getMessage()
-            );
+                    ex.getMessage());
 
             throw new BadRequestException(
-                    "Unable to save patient"
-            );
+                    "Unable to save patient");
         }
     }
 
@@ -73,12 +69,10 @@ public class PatientDaoImpl implements PatientDao {
 
             log.error(
                     "Database error while checking patient mobile: {}",
-                    ex.getMessage()
-            );
+                    ex.getMessage());
 
             throw new BadRequestException(
-                    "Unable to validate patient mobile"
-            );
+                    "Unable to validate patient mobile");
         }
     }
 
@@ -87,8 +81,7 @@ public class PatientDaoImpl implements PatientDao {
 
         try {
 
-            Specification<Patient> specification =
-                    PatientSpecification.searchByKeyword(keyword);
+            Specification<Patient> specification = PatientSpecification.searchByKeyword(keyword);
 
             return patientRepository.findAll(specification);
 
@@ -96,12 +89,28 @@ public class PatientDaoImpl implements PatientDao {
 
             log.error(
                     "Database error while searching patients: {}",
-                    ex.getMessage()
-            );
+                    ex.getMessage());
 
             throw new BadRequestException(
-                    "Unable to search patients"
-            );
+                    "Unable to search patients");
+        }
+    }
+
+    @Override
+    public Optional<Patient> findById(Long patientId) {
+
+        try {
+
+            return patientRepository.findById(patientId);
+
+        } catch (DataAccessException ex) {
+
+            log.error(
+                    "Database error while fetching patient by id: {}",
+                    ex.getMessage());
+
+            throw new BadRequestException(
+                    "Unable to fetch patient");
         }
     }
 }

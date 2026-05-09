@@ -24,7 +24,6 @@ import com.app.enums.AppointmentStatus;
 import com.app.exception.BadRequestException;
 import com.app.exception.ResourceNotFoundException;
 import com.app.exception.UnauthorizedException;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -323,4 +322,5 @@ public class DoctorQueueServiceImpl implements DoctorQueueService {
 
                 doctorQueueDao.save(appointment);
         }
+
 }
