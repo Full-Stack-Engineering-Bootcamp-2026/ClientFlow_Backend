@@ -16,4 +16,6 @@ public class DoctorDashboardResponse {
     private CurrentPatientResponse currentPatient;
 
     private List<WaitingPatientResponse> waitingPatients;
+
+    private List<CompletedConsultationResponse> completedConsultations;
 }
