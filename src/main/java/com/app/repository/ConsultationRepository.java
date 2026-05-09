@@ -7,10 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ConsultationRepository
-        extends JpaRepository<Consultation, Long> {
+                extends JpaRepository<Consultation, Long> {
 
-    Optional<Consultation> findByAppointmentId(Long appointmentId);
+        Optional<Consultation> findByAppointmentId(Long appointmentId);
 
-    List<Consultation> findByAppointmentPatientIdOrderByCreatedAtDesc(
-            Long patientId);
+        List<Consultation> findByAppointmentPatientIdOrderByCreatedAtDesc(Long patientId);
+
+        Optional<Consultation> findById(Long consultationId);
 }

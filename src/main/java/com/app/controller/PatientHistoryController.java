@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.app.dto.ConsultationHistoryDetailsResponse;
 import com.app.dto.PatientHistoryResponse;
 import com.app.response.ApiResponse;
 import com.app.service.PatientHistoryService;
@@ -19,23 +20,35 @@ import lombok.RequiredArgsConstructor;
 @PreAuthorize("hasAnyRole('DOCTOR','NURSE','ADMIN')")
 public class PatientHistoryController {
 
-    private final PatientHistoryService patientHistoryService;
+        private final PatientHistoryService patientHistoryService;
 
-    @GetMapping("/{patientId}/history")
-    public ResponseEntity<ApiResponse<PatientHistoryResponse>>
-    getPatientHistory(
-            @PathVariable Long patientId
-    ) {
+        @GetMapping("/{patientId}/history")
+        public ResponseEntity<ApiResponse<PatientHistoryResponse>> getPatientHistory(
+                        @PathVariable Long patientId) {
 
-        return ResponseEntity.ok(
-                ApiResponse.<PatientHistoryResponse>builder()
-                        .success(true)
-                        .message("Patient history fetched successfully")
-                        .data(
-                                patientHistoryService
-                                        .getPatientHistory(patientId)
-                        )
-                        .build()
-        );
-    }
+                return ResponseEntity.ok(
+                                ApiResponse.<PatientHistoryResponse>builder()
+                                                .success(true)
+                                                .message("Patient history fetched successfully")
+                                                .data(
+                                                                patientHistoryService
+                                                                                .getPatientHistory(patientId))
+                                                .build());
+        }
+
+        @GetMapping("/consultations/{consultationId}")
+        public ResponseEntity<ApiResponse<ConsultationHistoryDetailsResponse>> getConsultationDetails(
+                        @PathVariable Long consultationId) {
+
+                return ResponseEntity.ok(
+                                ApiResponse
+                                                .<ConsultationHistoryDetailsResponse>builder()
+                                                .success(true)
+                                                .message("Consultation details fetched successfully")
+                                                .data(
+                                                                patientHistoryService
+                                                                                .getConsultationDetails(
+                                                                                                consultationId))
+                                                .build());
+        }
 }
