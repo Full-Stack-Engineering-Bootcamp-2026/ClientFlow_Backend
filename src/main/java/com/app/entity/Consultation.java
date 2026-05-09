@@ -5,7 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
+
 
 @Getter
 @Setter
@@ -49,8 +50,8 @@ public class Consultation extends CreatedOnly {
     // started_at is a separate business timestamp, not the audit createdAt
     @CreatedDate
     @Column(name = "started_at", nullable = false, updatable = false)
-    private OffsetDateTime startedAt;
+    private LocalDateTime startedAt;
 
     @Column(name = "completed_at")
-    private OffsetDateTime completedAt;
+    private LocalDateTime completedAt;
 }
