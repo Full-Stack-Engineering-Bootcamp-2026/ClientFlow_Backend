@@ -14,4 +14,6 @@ public interface PatientDao {
     boolean existsByMobile(String mobile);
 
     List<Patient> searchPatients(String keyword);
+
+    Optional<Patient> findById(Long patientId);
 }

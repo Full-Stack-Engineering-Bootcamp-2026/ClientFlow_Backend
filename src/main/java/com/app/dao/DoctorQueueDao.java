@@ -46,4 +46,6 @@ public interface DoctorQueueDao {
         Prescription getPrescriptionByConsultationId(Long consultationId);
 
         void saveMedicines(List<PrescriptionMedicine> medicines);
+
+       
 }

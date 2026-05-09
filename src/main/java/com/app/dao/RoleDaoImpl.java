@@ -6,7 +6,6 @@ import com.app.repository.RoleRepository;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 @Repository

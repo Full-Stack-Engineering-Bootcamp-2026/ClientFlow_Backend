@@ -6,6 +6,7 @@ import com.app.dto.CompleteConsultationRequest;
 import com.app.dto.ConsultationPageResponse;
 import com.app.dto.DoctorDashboardResponse;
 
+
 public interface DoctorQueueService {
 
     DoctorDashboardResponse getDashboard();
@@ -15,4 +16,6 @@ public interface DoctorQueueService {
     ConsultationPageResponse getConsultationPage(Long appointmentId);
 
     void completeConsultation(CompleteConsultationRequest request);
+
+    
 }
