@@ -1,6 +1,8 @@
 package com.app.repository;
 
 import com.app.entity.Consultation;
+import com.app.enums.AppointmentStatus;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -14,4 +16,8 @@ public interface ConsultationRepository
         List<Consultation> findByAppointmentPatientIdOrderByCreatedAtDesc(Long patientId);
 
         Optional<Consultation> findById(Long consultationId);
+
+        List<Consultation> findByDoctorIdAndAppointmentStatusOrderByCompletedAtDesc(
+                        Long doctorId,
+                        AppointmentStatus status);
 }

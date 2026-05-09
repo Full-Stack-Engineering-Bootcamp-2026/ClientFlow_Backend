@@ -47,5 +47,6 @@ public interface DoctorQueueDao {
 
         void saveMedicines(List<PrescriptionMedicine> medicines);
 
-       
+        List<Consultation> getCompletedConsultations(
+                        Long doctorId);
 }

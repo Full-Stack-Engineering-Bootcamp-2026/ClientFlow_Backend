@@ -165,5 +165,14 @@ public class DoctorQueueDaoImpl implements DoctorQueueDao {
                 prescriptionMedicineRepository.saveAll(medicines);
         }
 
-        
+        @Override
+        public List<Consultation> getCompletedConsultations(
+                        Long doctorId) {
+
+                return consultationRepository
+                                .findByDoctorIdAndAppointmentStatusOrderByCompletedAtDesc(
+                                                doctorId,
+                                                AppointmentStatus.COMPLETED);
+        }
+
 }
