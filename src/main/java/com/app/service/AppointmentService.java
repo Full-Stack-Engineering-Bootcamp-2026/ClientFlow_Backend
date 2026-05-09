@@ -9,11 +9,9 @@ import java.util.List;
 
 public interface AppointmentService {
 
-    List<PatientSearchResponse> searchPatients(String keyword);
+    AppointmentResponse bookAppointment(AppointmentRequest request);
 
-    AppointmentResponse bookAppointment(
-            AppointmentRequest request
-    );
+    List<PatientSearchResponse> searchPatients(String keyword);
 
     List<DoctorDropdownResponse> getAllDoctors();
 }
