@@ -11,9 +11,7 @@ public interface AppointmentService {
 
     List<PatientSearchResponse> searchPatients(String keyword);
 
-    AppointmentResponse bookAppointment(
-            AppointmentRequest request
-    );
+    AppointmentResponse bookAppointment(AppointmentRequest request);
 
     List<DoctorDropdownResponse> getAllDoctors();
 }
