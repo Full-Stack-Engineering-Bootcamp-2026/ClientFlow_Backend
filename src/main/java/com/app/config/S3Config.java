@@ -18,16 +18,16 @@ import java.net.URI;
 @Configuration
 public class S3Config {
 
-    @Value("${backblaze.endpoint}")
+    @Value("${cloud.s3.endpoint}")
     private String endpoint;
 
-    @Value("${backblaze.region}")
+    @Value("${cloud.s3.region}")
     private String region;
 
-    @Value("${backblaze.access-key}")
+    @Value("${cloud.s3.access-key}")
     private String accessKey;
 
-    @Value("${backblaze.secret-key}")
+    @Value("${cloud.s3.secret-key}")
     private String secretKey;
 
     @Bean
