@@ -8,14 +8,27 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class RoleDaoImpl implements RoleDao {
 
-    private final RoleRepository roleRepository;
+ private final RoleRepository roleRepository;
 
-    public Role getById(Long id) {
+ public Role getById(Long id) {
 
-        return roleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Role not found"));
-    }
+ return roleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+ }
+
+ public Role getByName(String name) {
+
+ return roleRepository.findByNameIgnoreCase(name)
+ .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+ }
+
+ public List<Role> getAllRoles() {
+
+ return roleRepository.findAll();
+ }
 }
