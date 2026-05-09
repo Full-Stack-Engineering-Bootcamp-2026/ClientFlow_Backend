@@ -1,125 +1,211 @@
 package com.app.service;
 
-import com.app.config.*;
-import com.app.dao.*;
+import com.app.dao.AppointmentDao;
+import com.app.dao.StaffDao;
 import com.app.dto.AppointmentRequest;
 import com.app.dto.AppointmentResponse;
-import com.app.entity.*;
+import com.app.dto.patient.response.DoctorDropdownResponse;
+import com.app.dto.patient.response.PatientSearchResponse;
+import com.app.entity.Appointment;
+import com.app.entity.DoctorSchedule;
+import com.app.entity.Patient;
+import com.app.entity.Staff;
 import com.app.enums.AppointmentStatus;
 import com.app.enums.DayOfWeek;
 import com.app.exception.BadRequestException;
-
+import com.app.exception.ResourceNotFoundException;
+import com.app.repository.AppointmentRepository;
+import com.app.repository.DoctorScheduleRepository;
+import com.app.repository.LeaveExceptionRepository;
+import com.app.repository.PatientRepository;
+import com.app.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class AppointmentServiceImpl implements AppointmentService {
 
-        private final AppointmentDao appointmentDao;
-        private final StaffDao staffDao;
-        private final PatientDao patientDao;
-        private final DoctorScheduleDao scheduleDao;
-        private final LeaveDao leaveDao;
+    private final PatientRepository patientRepository;
 
-        @Transactional
-        public AppointmentResponse bookAppointment(AppointmentRequest request) {
+    private final AppointmentRepository appointmentRepository;
 
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    private final AppointmentDao appointmentDao;
 
-                String email = authentication.getName();
+    private final StaffDao staffDao;
 
-                Staff bookedBy = staffDao.getByEmail(email);
+    private final DoctorScheduleRepository doctorScheduleRepository;
 
-                Staff doctor = staffDao.getById(request.getDoctorId());
+    private final LeaveExceptionRepository leaveExceptionRepository;
 
-                if (!doctor.getRole().getName().equals("DOCTOR")) {
-                        throw new BadRequestException("Invalid doctor");
-                }
+    private final SecurityUtil securityUtil;
 
-                if (!doctor.getIsActive()) {
-                        throw new BadRequestException("Doctor is inactive");
-                }
+    @Override
+    public List<DoctorDropdownResponse> getAllDoctors() {
 
-                Patient patient = patientDao
-                                .findByMobile(request.getPatientPhone())
-                                .orElseGet(() -> {
+        return staffDao.getAllActiveDoctors()
+                .stream()
+                .map(doctor ->
+                        DoctorDropdownResponse.builder()
+                                .doctorId(doctor.getId())
+                                .fullName(doctor.getFullName())
+                                .specialization(doctor.getSpecialization())
+                                .build()
+                )
+                .toList();
+    }
 
-                                        Patient p = Patient.builder()
-                                                        .fullName(request.getPatientName())
-                                                        .mobile(request.getPatientPhone())
-                                                        .registeredBy(bookedBy)
-                                                        .gender(request.getGender())
-                                                        .build();
+    @Override
+    public List<PatientSearchResponse> searchPatients(String keyword) {
 
-                                        return patientDao.save(p);
-                                });
+        List<Patient> patients =
+                patientRepository.findByFullNameContainingIgnoreCase(keyword);
 
-                boolean alreadyBooked = appointmentDao.existsPatientBooking(
+        return patients.stream()
+                .map(patient -> {
+
+                    boolean hasHistory =
+                            appointmentRepository.existsByPatientId(
+                                    patient.getId()
+                            );
+
+                    return PatientSearchResponse.builder()
+                            .patientId(patient.getId())
+                            .fullName(patient.getFullName())
+                            .mobile(patient.getMobile())
+                            .hasHistory(hasHistory)
+                            .patientType(
+                                    hasHistory ? "REGULAR" : "NEW"
+                            )
+                            .build();
+                })
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public AppointmentResponse bookAppointment(
+            AppointmentRequest request
+    ) {
+
+        Patient patient = patientRepository
+                .findById(request.getPatientId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Patient not found"
+                        )
+                );
+
+        Staff doctor = staffDao.getById(
+                request.getDoctorId()
+        );
+
+        if (!doctor.getRole().getName().equals("DOCTOR")) {
+
+            throw new BadRequestException(
+                    "Invalid doctor"
+            );
+        }
+
+        if (!doctor.getIsActive()) {
+
+            throw new BadRequestException(
+                    "Doctor is inactive"
+            );
+        }
+
+        DayOfWeek dayOfWeek = DayOfWeek.valueOf(
+                request.getAppointmentDate()
+                        .getDayOfWeek()
+                        .name()
+                        .substring(0, 3)
+        );
+
+        DoctorSchedule doctorSchedule =
+                doctorScheduleRepository
+                        .findByDoctorIdAndDayOfWeekAndIsActiveTrue(
                                 doctor.getId(),
-                                patient.getId(),
-                                request.getAppointmentDate());
+                                dayOfWeek
+                        )
+                        .orElseThrow(() ->
+                                new BadRequestException(
+                                        "Doctor unavailable on selected date"
+                                )
+                        );
 
-                if (alreadyBooked) {
-                        throw new BadRequestException(
-                                        "Patient already booked for this doctor today");
-                }
-
-                DayOfWeek day = DayOfWeek.valueOf(
+        boolean onLeave =
+                leaveExceptionRepository
+                        .existsByDoctorScheduleDoctorIdAndExceptionDate(
+                                doctor.getId(),
                                 request.getAppointmentDate()
-                                                .getDayOfWeek()
-                                                .name()
-                                                .substring(0, 3));
+                        );
 
-                DoctorSchedule schedule = scheduleDao.getDoctorSchedule(
+        if (onLeave) {
+
+            throw new BadRequestException(
+                    "Doctor is on leave for selected date"
+            );
+        }
+
+        long existingAppointments =
+                appointmentRepository
+                        .countByDoctorIdAndAppointmentDateAndStatusIn(
                                 doctor.getId(),
-                                day);
+                                request.getAppointmentDate(),
+                                List.of(
+                                        AppointmentStatus.WAITING,
+                                        AppointmentStatus.IN_PROGRESS
+                                )
+                        );
 
-                if (!schedule.getIsActive()) {
-                        throw new BadRequestException("Schedule inactive");
-                }
+        if (existingAppointments >= doctorSchedule.getMaxAppointments()) {
 
-                long count = appointmentDao.countDoctorAppointments(
-                                doctor.getId(),
-                                request.getAppointmentDate());
+            throw new BadRequestException(
+                    "Doctor appointment limit reached"
+            );
+        }
 
-                if (count >= schedule.getMaxAppointments()) {
-                        throw new BadRequestException("Slots full");
-                }
+        Integer maxQueueNumber =
+                appointmentDao.findMaxQueueNumber(
+                        doctor.getId(),
+                        request.getAppointmentDate()
+                );
 
-                boolean onLeave = leaveDao.existsLeave(
-                                schedule.getId(),
-                                request.getAppointmentDate());
+        int nextQueueNumber = maxQueueNumber + 1;
 
-                if (onLeave) {
-                        throw new BadRequestException(
-                                        "Doctor is on leave on this date");
-                }
+        String loggedInEmail =
+                securityUtil.getCurrentUserEmail();
 
-                int nextQueue = appointmentDao.getNextQueueNumber(
-                                doctor.getId(),
-                                request.getAppointmentDate());
+        Staff bookedBy =
+                staffDao.getByEmail(loggedInEmail);
 
-                Appointment appointment = Appointment.builder()
-                                .doctor(doctor)
-                                .patient(patient)
-                                .bookedBy(bookedBy)
-                                .appointmentDate(request.getAppointmentDate())
-                                .queueNumber(nextQueue)
-                                .status(AppointmentStatus.WAITING)
-                                .notes(request.getNotes())
-                                .build();
+        Appointment appointment = Appointment.builder()
+                .patient(patient)
+                .doctor(doctor)
+                .bookedBy(bookedBy)
+                .appointmentDate(request.getAppointmentDate())
+                .queueNumber(nextQueueNumber)
+                .visitType(request.getVisitType())
+                .status(AppointmentStatus.WAITING)
+                .notes(request.getNotes())
+                .build();
 
+        Appointment savedAppointment =
                 appointmentDao.save(appointment);
 
-                return new AppointmentResponse(
-                                appointment.getId(),
-                                doctor.getFullName(),
-                                appointment.getQueueNumber(),
-                                appointment.getStatus().name(),
-                                appointment.getAppointmentDate());
-        }
+        return AppointmentResponse.builder()
+                .appointmentId(savedAppointment.getId())
+                .patientName(patient.getFullName())
+                .doctorName(doctor.getFullName())
+                .appointmentDate(savedAppointment.getAppointmentDate())
+                .queueNumber(savedAppointment.getQueueNumber())
+                .queueLabel(
+                        "Q-" + savedAppointment.getQueueNumber()
+                )
+                .status(savedAppointment.getStatus().name())
+                .build();
+    }
 }

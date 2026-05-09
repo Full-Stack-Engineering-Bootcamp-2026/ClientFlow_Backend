@@ -1,18 +1,27 @@
 package com.app.dto;
 
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 
 import java.time.LocalDate;
 
-@Data
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
 @AllArgsConstructor
 public class AppointmentResponse {
 
-    private Long id;
+    private Long appointmentId;
+
+    private String patientName;
+
     private String doctorName;
+
     private Integer queueNumber;
+
+    private String queueLabel;
+
     private String status;
+
     private LocalDate appointmentDate;
 }

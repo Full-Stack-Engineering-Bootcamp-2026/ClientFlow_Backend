@@ -2,6 +2,8 @@ package com.app.entity;
 
 import com.app.entity.base.Auditable;
 import com.app.enums.AppointmentStatus;
+import com.app.enums.VisitType;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,17 +17,11 @@ import java.time.LocalDate;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @ToString(callSuper = false)
 @Entity
-@Table(
-    name = "appointment",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uq_queue_slot",
-        columnNames = {"doctor_id", "appointment_date", "queue_number"}
-    ),
-    indexes = {
-        @Index(name = "idx_appt_queue",   columnList = "doctor_id, appointment_date, status"),
-        @Index(name = "idx_appt_patient", columnList = "patient_id")
-    }
-)
+@Table(name = "appointment", uniqueConstraints = @UniqueConstraint(name = "uq_queue_slot", columnNames = { "doctor_id",
+        "appointment_date", "queue_number" }), indexes = {
+                @Index(name = "idx_appt_queue", columnList = "doctor_id, appointment_date, status"),
+                @Index(name = "idx_appt_patient", columnList = "patient_id")
+        })
 public class Appointment extends Auditable {
 
     @Id
@@ -58,6 +54,11 @@ public class Appointment extends Auditable {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private AppointmentStatus status = AppointmentStatus.WAITING;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visit_type", nullable = false, length = 20)
+    @Builder.Default
+    private VisitType visitType = VisitType.STANDARD;
 
     @Column(name = "notes", length = 500)
     private String notes;
