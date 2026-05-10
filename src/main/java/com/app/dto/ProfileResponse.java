@@ -1,5 +1,7 @@
 package com.app.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,4 +26,6 @@ public class ProfileResponse {
     private String specialization;
 
     private String profileImage;
+
+    private LocalDateTime createdAt;
 }

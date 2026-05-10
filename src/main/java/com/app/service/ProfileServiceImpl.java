@@ -13,54 +13,55 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
 
-    private final ProfileDao profileDao;
+        private final ProfileDao profileDao;
 
-    @Override
-    public ProfileResponse getMyProfile() {
+        @Override
+        public ProfileResponse getMyProfile() {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+                String email = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getName();
 
-        Staff staff = profileDao.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Staff not found"));
+                Staff staff = profileDao.findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException("Staff not found"));
 
-        return mapToResponse(staff);
-    }
+                return mapToResponse(staff);
+        }
 
-    @Override
-    public ProfileResponse updateMyProfile(UpdateProfileRequest request) {
+        @Override
+        public ProfileResponse updateMyProfile(UpdateProfileRequest request) {
 
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
+                String email = SecurityContextHolder
+                                .getContext()
+                                .getAuthentication()
+                                .getName();
 
-        Staff staff = profileDao.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Staff not found"));
+                Staff staff = profileDao.findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException("Staff not found"));
 
-        staff.setFullName(request.getName());
-        staff.setPhone(request.getPhoneNumber());
-        staff.setSpecialization(request.getSpecialization());
+                staff.setFullName(request.getName());
+                staff.setPhone(request.getPhoneNumber());
+                staff.setSpecialization(request.getSpecialization());
 
-        Staff updatedStaff = profileDao.save(staff);
+                Staff updatedStaff = profileDao.save(staff);
 
-        return mapToResponse(updatedStaff);
-    }
+                return mapToResponse(updatedStaff);
+        }
 
-    private ProfileResponse mapToResponse(Staff staff) {
+        private ProfileResponse mapToResponse(Staff staff) {
 
-        return ProfileResponse.builder()
-                .id(staff.getId())
-                .name(staff.getFullName())
-                .email(staff.getEmail())
-                .phoneNumber(staff.getPhone())
-                .role(staff.getRole().getName())
-                .officialRole(staff.getOfficialRole())
-                .specialization(staff.getSpecialization())
-                .profileImage(
-                 staff.getProfilePhotoUrl())
-                .build();
-    }
+                return ProfileResponse.builder()
+                                .id(staff.getId())
+                                .name(staff.getFullName())
+                                .email(staff.getEmail())
+                                .phoneNumber(staff.getPhone())
+                                .role(staff.getRole().getName())
+                                .officialRole(staff.getOfficialRole())
+                                .specialization(staff.getSpecialization())
+                                .profileImage(
+                                                staff.getProfilePhotoUrl())
+                                .createdAt(staff.getCreatedAt())
+                                .build();
+        }
 }
