@@ -69,12 +69,17 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService{
                     "Start time must be before end time");
         }
 
+        Integer maxAppointments =
+                request.getMaxAppointments() == null
+                        ? STANDARD_MAX_APPOINTMENTS
+                        : request.getMaxAppointments();
+
         DoctorSchedule schedule = DoctorSchedule.builder()
                 .doctor(doctor)
                 .dayOfWeek(request.getDayOfWeek())
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
-                .maxAppointments(request.getMaxAppointments())
+                .maxAppointments(maxAppointments)
                 .isActive(true)
                 .build();
 
@@ -128,6 +133,16 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService{
             throw new BadRequestException("Invalid doctor");
         }
 
+        if (request.getStartTime().isAfter(request.getEndTime())) {
+            throw new BadRequestException(
+                    "Start time must be before end time");
+        }
+
+        Integer maxAppointments =
+                request.getMaxAppointments() == null
+                        ? STANDARD_MAX_APPOINTMENTS
+                        : request.getMaxAppointments();
+
         for (DayOfWeek day : request.getDays()) {
 
             boolean exists =
@@ -145,7 +160,7 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService{
                     .dayOfWeek(day)
                     .startTime(request.getStartTime())
                     .endTime(request.getEndTime())
-                    .maxAppointments(request.getMaxAppointments())
+                    .maxAppointments(maxAppointments)
                     .isActive(true)
                     .build();
 

@@ -23,5 +23,6 @@ public class DoctorWeeklyScheduleRequest {
     @NotNull
     private LocalTime endTime;
 
+    @Min(value = 1, message = "Max appointments must be at least 1")
     private Integer maxAppointments;
 }
