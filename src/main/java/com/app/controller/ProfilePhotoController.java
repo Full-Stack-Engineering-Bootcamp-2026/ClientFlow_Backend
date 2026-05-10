@@ -2,10 +2,6 @@ package com.app.controller;
 
 import com.app.response.ApiResponse;
 
-import com.app.dto.UpdateProfilePhotoRequest;
-import com.app.dto.UploadProfilePhotoUrlRequest;
-import com.app.dto.UploadProfilePhotoUrlResponse;
-
 import com.app.service.ProfilePhotoService;
 
 import lombok.RequiredArgsConstructor;
@@ -15,47 +11,41 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 @RestController
-@RequestMapping("/api/profile/photo")
+@RequestMapping("/api/profile")
 @RequiredArgsConstructor
 public class ProfilePhotoController {
 
     private final ProfilePhotoService profilePhotoService;
 
-    @PostMapping("/upload-url")
-    public ResponseEntity<ApiResponse> generateUploadUrl(
-            @RequestBody UploadProfilePhotoUrlRequest request,
+    @PutMapping(value = "/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<String>> uploadProfilePhoto(
+
+            @RequestParam("file") MultipartFile file,
+
             Authentication authentication) {
 
-        UploadProfilePhotoUrlResponse response = profilePhotoService
-                .generateUploadUrl(
-                        request,
-                        authentication.getName());
+        String photoUrl = profilePhotoService.uploadProfilePhoto(
+                file,
+                authentication.getName());
 
         return ResponseEntity.ok(
-                new ApiResponse(
-                        true,
-                        "Upload URL generated successfully",
-                        response,
-                        null));
+
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .message(
+                                "Profile photo uploaded successfully")
+                        .data(photoUrl)
+                        .build());
     }
 
-    @PatchMapping
-    public ResponseEntity<ApiResponse> updateProfilePhoto(
-            @RequestBody UpdateProfilePhotoRequest request,
-            Authentication authentication) {
+    @GetMapping("/photo/view")
+        public ResponseEntity<byte[]> viewProfilePhoto(
+            Authentication authentication)   {
 
-        profilePhotoService
-                .updateProfilePhoto(
-                        request,
-                        authentication.getName());
-
-        return ResponseEntity.ok(
-                new ApiResponse(
-                        true,
-                        "Profile photo updated successfully",
-                        null,
-                        null));
+                    return profilePhotoService.getProfilePhoto(authentication.getName());
     }
 }

@@ -59,7 +59,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .role(staff.getRole().getName())
                 .officialRole(staff.getOfficialRole())
                 .specialization(staff.getSpecialization())
-                .profileImage(null)
+                .profileImage(
+                 staff.getProfilePhotoUrl())
                 .build();
     }
 }

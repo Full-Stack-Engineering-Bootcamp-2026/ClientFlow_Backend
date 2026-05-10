@@ -1,16 +1,15 @@
 package com.app.service;
 
-import com.app.dto.UpdateProfilePhotoRequest;
-import com.app.dto.UploadProfilePhotoUrlRequest;
-import com.app.dto.UploadProfilePhotoUrlResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProfilePhotoService {
 
-    UploadProfilePhotoUrlResponse generateUploadUrl(
-            UploadProfilePhotoUrlRequest request,
-            String staffEmail);
-
-    void updateProfilePhoto(
-            UpdateProfilePhotoRequest request,
-            String staffEmail);
+    String uploadProfilePhoto(
+            MultipartFile file,
+            String staffEmail
+    );
+    ResponseEntity<byte[]> getProfilePhoto(
+        String staffEmail
+);
 }
