@@ -23,8 +23,18 @@ public class StaffDaoImpl implements StaffDao {
 
  private final StaffRepository staffRepository;
 
+    @Override
+  public String getLastEmployeeId(String prefix) {
+
+    return staffRepository
+            .findTopByEmployeeIdStartingWithOrderByEmployeeIdDesc(prefix)
+            .map(Staff::getEmployeeId)
+            .orElse(null);
+}
+
  @Override
  public Staff getById(Long id) {
+
 
  return staffRepository.findById(id)
  .orElseThrow(() ->
