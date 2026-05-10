@@ -28,7 +28,7 @@ public class DashboardServiceImpl implements DashboardService{
         List<DoctorScheduleDashboardResponse> response =
                 new ArrayList<>();
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 7; i++) {
 
             LocalDate currentDate = startDate.plusDays(i);
 

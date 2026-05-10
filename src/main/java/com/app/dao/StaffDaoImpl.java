@@ -21,25 +21,25 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StaffDaoImpl implements StaffDao {
 
-    private final StaffRepository staffRepository;
+ private final StaffRepository staffRepository;
 
-    @Override
-    public Staff getById(Long id) {
+ @Override
+ public Staff getById(Long id) {
 
-        return staffRepository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Doctor not found")
-                );
-    }
+ return staffRepository.findById(id)
+ .orElseThrow(() ->
+ new ResourceNotFoundException("Doctor not found")
+ );
+ }
 
-    @Override
-    public Staff getByEmail(String email) {
+ @Override
+ public Staff getByEmail(String email) {
 
-        return staffRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UnauthorizedException("User not found")
-                );
-    }
+ return staffRepository.findByEmail(email)
+ .orElseThrow(() ->
+ new UnauthorizedException("User not found")
+ );
+ }
 
     @Override
     public Staff findByEmail(String email) {
@@ -53,73 +53,82 @@ public class StaffDaoImpl implements StaffDao {
     @Override
     public long getTotalStaffCount() {
 
-        return staffRepository.count();
-    }
+ return staffRepository.count();
+ }
 
-    @Override
-    public long getActiveDoctorCount() {
+ @Override
+ public long getActiveDoctorCount() {
 
-        return staffRepository
-                .countByRole_NameAndIsActiveTrue("DOCTOR");
-    }
+ return staffRepository
+ .countByRole_NameAndIsActiveTrue("DOCTOR");
+ }
 
-    @Override
-    public long countByRoleId(Long roleId) {
+ @Override
+ public long countByRoleId(Long roleId) {
 
-        return staffRepository.countByRoleId(roleId);
-    }
+ return staffRepository.countByRoleId(roleId);
+ }
 
-    @Override
-    public Staff save(Staff staff) {
+ @Override
+ public Staff save(Staff staff) {
 
-        return staffRepository.save(staff);
-    }
+ return staffRepository.save(staff);
+ }
 
-    @Override
-    public boolean existsByEmail(String email) {
+ @Override
+ public boolean existsByEmail(String email) {
 
-        return staffRepository.existsByEmail(email);
-    }
+ return staffRepository.existsByEmail(email);
+ }
 
-    @Override
-    public List<Staff> getActiveDoctors() {
+ @Override
+ public List<Staff> getActiveDoctors() {
 
-        return staffRepository
-                .findByRole_NameAndIsActiveTrue("DOCTOR");
-    }
+ return staffRepository
+ .findByRole_NameAndIsActiveTrue("DOCTOR");
+ }
 
-    @Override
-    public Staff update(Staff staff) {
+ @Override
+ public Staff update(Staff staff) {
 
-        return staffRepository.save(staff);
-    }
+ return staffRepository.save(staff);
+ }
 
-    @Override
-    public Page<Staff> getAllStaff(Pageable pageable) {
+ @Override
+ public Page<Staff> getAllStaff(Pageable pageable) {
 
-        return staffRepository.findAll(pageable);
-    }
+ return staffRepository.findAll(pageable);
+ }
 
-    @Override
-    public List<Staff> getAllActiveDoctors() {
+ @Override
+ public Page<Staff> getAllStaff(
+ Specification<Staff> specification,
+ Pageable pageable
+ ) {
 
-        try {
+ return staffRepository.findAll(specification, pageable);
+ }
 
-            Specification<Staff> specification =
-                    DoctorSpecification.activeDoctors();
+ @Override
+ public List<Staff> getAllActiveDoctors() {
 
-            return staffRepository.findAll(specification);
+ try {
 
-        } catch (DataAccessException ex) {
+ Specification<Staff> specification =
+ DoctorSpecification.activeDoctors();
 
-            log.error(
-                    "Database error while fetching active doctors: {}",
-                    ex.getMessage()
-            );
+ return staffRepository.findAll(specification);
 
-            throw new BadRequestException(
-                    "Unable to fetch doctors"
-            );
-        }
-    }
+ } catch (DataAccessException ex) {
+
+ log.error(
+ "Database error while fetching active doctors: {}",
+ ex.getMessage()
+ );
+
+ throw new BadRequestException(
+ "Unable to fetch doctors"
+ );
+ }
+ }
 }
