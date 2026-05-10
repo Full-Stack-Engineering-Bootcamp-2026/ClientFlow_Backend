@@ -55,4 +55,10 @@ public class Staff extends Auditable {
     @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+
+    @Column(name = "profile_photo_url")
+private String profilePhotoUrl;
+
+@Column(name = "profile_photo_key")
+private String profilePhotoKey;
 }

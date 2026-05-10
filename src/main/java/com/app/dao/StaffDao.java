@@ -13,7 +13,9 @@ public interface StaffDao {
 
  Staff getByEmail(String email);
 
- long getTotalStaffCount();
+    Staff findByEmail(String email);
+
+    long getTotalStaffCount();
 
  long getActiveDoctorCount();
 

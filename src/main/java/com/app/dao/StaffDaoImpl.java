@@ -41,8 +41,17 @@ public class StaffDaoImpl implements StaffDao {
  );
  }
 
- @Override
- public long getTotalStaffCount() {
+    @Override
+    public Staff findByEmail(String email) {
+
+        return staffRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UnauthorizedException("User not found")
+                );
+    }
+
+    @Override
+    public long getTotalStaffCount() {
 
  return staffRepository.count();
  }
