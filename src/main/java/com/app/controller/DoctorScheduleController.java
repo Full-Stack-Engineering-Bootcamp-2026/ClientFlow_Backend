@@ -86,7 +86,7 @@ public class DoctorScheduleController {
     @PostMapping("/weekly")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> createWeeklySchedule(
-            @RequestBody DoctorWeeklyScheduleRequest request) {
+           @Valid @RequestBody DoctorWeeklyScheduleRequest request) {
 
         scheduleService.createWeeklySchedule(request);
 
