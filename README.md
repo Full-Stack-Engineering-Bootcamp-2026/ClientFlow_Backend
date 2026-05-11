@@ -354,7 +354,7 @@ http://localhost:8080
 Frontend Repository:
 
 ```text
-[ClinicFlow_Frontend](https://github.com/Full-Stack-Engineering-Bootcamp-2026/ClinicFlow_Frontend)
+https://github.com/Full-Stack-Engineering-Bootcamp-2026/ClinicFlow_Frontend
 ```
 
 ---
