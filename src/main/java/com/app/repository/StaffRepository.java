@@ -3,6 +3,7 @@ package com.app.repository;
 import com.app.entity.Staff;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,17 +18,20 @@ public interface StaffRepository extends
 
     boolean existsByEmployeeId(String employeeId);
 
-//     @Query("""
-//         SELECT s
-//         FROM Staff s
-//         WHERE s.role.name = 'DOCTOR'
-//         AND s.isActive = true
-//         ORDER BY s.fullName ASC
-//         """)
-// List<Staff> findAllActiveDoctors();
-long countByRole_NameAndIsActiveTrue(String roleName);
-     
-     List<Staff> findByRole_NameAndIsActiveTrue(String roleName);
+    Optional<Staff> findTopByEmployeeIdStartingWithOrderByEmployeeIdDesc(
+            String prefix);
 
-     long countByRoleId(Long roleId);
+    // @Query("""
+    // SELECT s
+    // FROM Staff s
+    // WHERE s.role.name = 'DOCTOR'
+    // AND s.isActive = true
+    // ORDER BY s.fullName ASC
+    // """)
+    // List<Staff> findAllActiveDoctors();
+    long countByRole_NameAndIsActiveTrue(String roleName);
+
+    List<Staff> findByRole_NameAndIsActiveTrue(String roleName);
+
+    long countByRoleId(Long roleId);
 }

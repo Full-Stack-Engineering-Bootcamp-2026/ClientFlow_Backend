@@ -215,33 +215,43 @@ public class StaffServiceImpl implements StaffService{
 
     private String generateEmployeeId(Role role) {
 
-        String prefix;
+    String prefix;
 
-        switch (role.getName().toUpperCase()) {
+    switch (role.getName().toUpperCase()) {
 
-            case "DOCTOR":
-                prefix = "DOC";
-                break;
+        case "DOCTOR":
+            prefix = "DOC";
+            break;
 
-            case "NURSE":
-                prefix = "NUR";
-                break;
+        case "NURSE":
+            prefix = "NUR";
+            break;
 
-            case "ADMIN":
-                prefix = "ADM";
-                break;
+        case "ADMIN":
+            prefix = "ADM";
+            break;
 
-            default:
-                prefix = "STF";
-        }
-
-        long count =
-                staffDao.countByRoleId(role.getId());
-
-        return prefix +
-                String.format("%03d", count + 1);
+        default:
+            prefix = "STF";
     }
 
+    String lastEmployeeId =
+            staffDao.getLastEmployeeId(prefix);
+
+    int nextNumber = 1;
+
+    if (lastEmployeeId != null) {
+
+        String numberPart =
+                lastEmployeeId.substring(3);
+
+        nextNumber =
+                Integer.parseInt(numberPart) + 1;
+    }
+
+    return prefix +
+            String.format("%03d", nextNumber);
+}
     private void createStandardDoctorSchedule(Staff doctor) {
 
         List<DayOfWeek> standardDays = List.of(

@@ -28,143 +28,124 @@ import software.amazon.awssdk.core.ResponseBytes;
 @RequiredArgsConstructor
 @Transactional
 public class ProfilePhotoServiceImpl
-     implements ProfilePhotoService{
+                implements ProfilePhotoService {
 
-    private final StaffDao staffDao;
+        private final StaffDao staffDao;
 
-    private final S3Client s3Client;
+        private final S3Client s3Client;
 
-    @Value("${cloud.s3.bucket}")
-    private String bucketName;
+        @Value("${cloud.s3.bucket}")
+        private String bucketName;
 
-    @Value("${cloud.s3.endpoint}")
-    private String endpoint;
+        @Value("${cloud.s3.endpoint}")
+        private String endpoint;
 
-    @Override
-    public String uploadProfilePhoto(
-            MultipartFile file,
-            String staffEmail) {
+        @Override
+        public String uploadProfilePhoto(
+                        MultipartFile file,
+                        String staffEmail) {
 
-        try {
+                try {
 
-            Staff staff = staffDao.getByEmail(staffEmail);
+                        Staff staff = staffDao.getByEmail(staffEmail);
 
-            // VALIDATE FILE
-            String contentType = file.getContentType();
+                        String contentType = file.getContentType();
 
-            if (contentType == null
-                    ||
-                    (!contentType.equals("image/jpeg")
-                            &&
-                            !contentType.equals("image/png")
-                            &&
-                            !contentType.equals("image/webp"))) {
+                        if (contentType == null
+                                        ||
+                                        (!contentType.equals("image/jpeg")
+                                                        &&
+                                                        !contentType.equals("image/png")
+                                                        &&
+                                                        !contentType.equals("image/webp"))) {
 
-                throw new RuntimeException(
-                        "Invalid image type");
-            }
+                                throw new RuntimeException(
+                                                "Invalid image type");
+                        }
 
-            // FILE EXTENSION
-            String originalFilename = file.getOriginalFilename();
+                        String originalFilename = file.getOriginalFilename();
 
-            String extension = originalFilename.substring(
-                    originalFilename.lastIndexOf("."));
+                        String extension = originalFilename.substring(
+                                        originalFilename.lastIndexOf("."));
 
-            // UNIQUE KEY
-            String fileKey = "profiles/"
-                    + staff.getId()
-                    + "/"
-                    + UUID.randomUUID()
-                    + extension;
+                        String fileKey = "profiles/"
+                                        + staff.getId()
+                                        + "/"
+                                        + UUID.randomUUID()
+                                        + extension;
 
-            // UPLOAD TO BACKBLAZE
-            s3Client.putObject(
+                        s3Client.putObject(
 
-                    PutObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(fileKey)
-                            .contentType(contentType)
-                            .build(),
+                                        PutObjectRequest.builder()
+                                                        .bucket(bucketName)
+                                                        .key(fileKey)
+                                                        .contentType(contentType)
+                                                        .build(),
 
-                    RequestBody.fromBytes(
-                            file.getBytes()));
+                                        RequestBody.fromBytes(
+                                                        file.getBytes()));
 
-            // GENERATE FILE URL
-            String fileUrl = endpoint
-                    + "/"
-                    + bucketName
-                    + "/"
-                    + fileKey;
+                        String fileUrl = endpoint
+                                        + "/"
+                                        + bucketName
+                                        + "/"
+                                        + fileKey;
 
-            // SAVE IN DB
-            staff.setProfilePhotoUrl(fileUrl);
+                        staff.setProfilePhotoUrl(fileUrl);
 
-            staff.setProfilePhotoKey(fileKey);
+                        staff.setProfilePhotoKey(fileKey);
 
-            staffDao.save(staff);
+                        staffDao.save(staff);
 
-            return fileUrl;
+                        return fileUrl;
 
-        } catch (Exception ex) {
+                } catch (Exception ex) {
 
-            throw new RuntimeException(
-                    "Failed to upload profile photo");
-        }
-    }
-    @Override
-public ResponseEntity<byte[]> getProfilePhoto(
-        String staffEmail
-) {
-
-    try {
-
-        Staff staff =
-                staffDao.getByEmail(
-                        staffEmail
-                );
-
-        if (
-                staff.getProfilePhotoKey()
-                        == null
-        ) {
-
-            return ResponseEntity
-                    .notFound()
-                    .build();
+                        throw new RuntimeException(
+                                        "Failed to upload profile photo");
+                }
         }
 
-        GetObjectRequest request =
-                GetObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(
-                                staff.getProfilePhotoKey()
-                        )
-                        .build();
+        @Override
+        public ResponseEntity<byte[]> getProfilePhoto(
+                        String staffEmail) {
 
-        ResponseBytes<GetObjectResponse>
-                objectBytes =
-                s3Client.getObjectAsBytes(
-                        request
-                );
+                try {
 
-        String contentType =
-                objectBytes.response()
-                        .contentType();
+                        Staff staff = staffDao.getByEmail(
+                                        staffEmail);
 
-        return ResponseEntity.ok()
-                .header(
-                        HttpHeaders.CONTENT_TYPE,
-                        contentType
-                )
-                .body(
-                        objectBytes.asByteArray()
-                );
+                        if (staff.getProfilePhotoKey() == null) {
 
-    } catch (Exception ex) {
+                                return ResponseEntity
+                                                .notFound()
+                                                .build();
+                        }
 
-        return ResponseEntity
-                .internalServerError()
-                .build();
-    }
-}
+                        GetObjectRequest request = GetObjectRequest.builder()
+                                        .bucket(bucketName)
+                                        .key(
+                                                        staff.getProfilePhotoKey())
+                                        .build();
+
+                        ResponseBytes<GetObjectResponse> objectBytes = s3Client.getObjectAsBytes(
+                                        request);
+
+                        String contentType = objectBytes.response()
+                                        .contentType();
+
+                        return ResponseEntity.ok()
+                                        .header(
+                                                        HttpHeaders.CONTENT_TYPE,
+                                                        contentType)
+                                        .body(
+                                                        objectBytes.asByteArray());
+
+                } catch (Exception ex) {
+
+                        return ResponseEntity
+                                        .internalServerError()
+                                        .build();
+                }
+        }
 }

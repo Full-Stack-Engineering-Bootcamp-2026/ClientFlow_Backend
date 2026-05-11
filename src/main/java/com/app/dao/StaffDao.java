@@ -34,4 +34,6 @@ public interface StaffDao {
  Page<Staff> getAllStaff(Specification<Staff> specification, Pageable pageable);
 
  List<Staff> getAllActiveDoctors();
+
+ String getLastEmployeeId(String prefix) ;
 }
