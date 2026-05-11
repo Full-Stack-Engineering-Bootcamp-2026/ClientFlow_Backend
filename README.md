@@ -351,10 +351,10 @@ http://localhost:8080
 
 ## Related Repository
 
-Frontend Repository:https://github.com/Full-Stack-Engineering-Bootcamp-2026/ClinicFlow_Frontend
+Frontend Repository:
 
 ```text
-ClinicFlow_Frontend
+[ClinicFlow_Frontend](https://github.com/Full-Stack-Engineering-Bootcamp-2026/ClinicFlow_Frontend)
 ```
 
 ---
