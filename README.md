@@ -351,7 +351,7 @@ http://localhost:8080
 
 ## Related Repository
 
-Frontend Repository:
+Frontend Repository:https://github.com/Full-Stack-Engineering-Bootcamp-2026/ClinicFlow_Frontend
 
 ```text
 ClinicFlow_Frontend
@@ -361,4 +361,4 @@ ClinicFlow_Frontend
 
 ## Author
 
-Built by Jayraj Gajul as a full-stack healthcare workflow management system focused on real-world clinic operations, queue management, consultation workflows, and role-based access control.
+Built by Jayraj Gajul , Chetan Asane , Rishita Pathak as a full-stack healthcare workflow management system focused on real-world clinic operations, queue management, consultation workflows, and role-based access control.
