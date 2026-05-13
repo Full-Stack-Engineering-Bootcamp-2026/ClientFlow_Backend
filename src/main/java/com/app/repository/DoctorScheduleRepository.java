@@ -1,4 +1,5 @@
 package com.app.repository;
+
 import java.util.List;
 import com.app.entity.DoctorSchedule;
 import com.app.enums.DayOfWeek;
@@ -10,13 +11,13 @@ public interface DoctorScheduleRepository extends JpaRepository<DoctorSchedule, 
 
     Optional<DoctorSchedule> findByDoctorIdAndDayOfWeekAndIsActiveTrue(
             Long doctorId,
-            DayOfWeek dayOfWeek
-    );
+            DayOfWeek dayOfWeek);
+
     List<DoctorSchedule> findByDoctorIdAndIsActiveTrue(Long doctorId);
 
-boolean existsByDoctorIdAndDayOfWeek(Long doctorId, DayOfWeek dayOfWeek);
+    boolean existsByDoctorIdAndDayOfWeek(Long doctorId, DayOfWeek dayOfWeek);
 
-Optional<DoctorSchedule> findByDoctorIdAndDayOfWeek(Long doctorId, DayOfWeek day);
+    Optional<DoctorSchedule> findByDoctorIdAndDayOfWeek(Long doctorId, DayOfWeek day);
 
-long countByDayOfWeekAndIsActiveTrue(com.app.enums.DayOfWeek dayOfWeek);
+    long countByDayOfWeekAndIsActiveTrue(com.app.enums.DayOfWeek dayOfWeek);
 }

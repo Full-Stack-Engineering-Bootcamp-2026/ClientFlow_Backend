@@ -24,9 +24,7 @@ public class DoctorQueueDaoImpl implements DoctorQueueDao {
 
         private final AppointmentRepository appointmentRepository;
         private final ConsultationRepository consultationRepository;
-
         private final PrescriptionRepository prescriptionRepository;
-
         private final PrescriptionMedicineRepository prescriptionMedicineRepository;
 
         @Override

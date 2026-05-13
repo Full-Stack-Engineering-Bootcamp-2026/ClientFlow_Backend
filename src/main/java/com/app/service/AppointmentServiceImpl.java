@@ -146,6 +146,18 @@ public class AppointmentServiceImpl implements AppointmentService {
                                         "Doctor appointment limit reached");
                 }
 
+                boolean alreadyBooked = appointmentRepository
+                                .existsByDoctorIdAndPatientIdAndAppointmentDate(
+                                                doctor.getId(),
+                                                patient.getId(),
+                                                request.getAppointmentDate());
+
+                if (alreadyBooked) {
+
+                        throw new BadRequestException(
+                                        "Patient already has an appointment with this doctor on selected date");
+                }
+
                 Integer maxQueueNumber = appointmentDao.findMaxQueueNumber(
                                 doctor.getId(),
                                 request.getAppointmentDate());

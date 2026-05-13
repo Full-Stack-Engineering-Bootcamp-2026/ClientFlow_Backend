@@ -17,5 +17,5 @@ public interface LeaveDao {
     public List<LeaveException> getDoctorLeavesBetween(Long doctorId,LocalDate startDate,LocalDate endDate) ;
     public boolean existsByScheduleAndDate(Long scheduleId,LocalDate date) ;
 
-public LeaveException save(LeaveException leave) ;
+    public LeaveException save(LeaveException leave) ;
 }
